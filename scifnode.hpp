@@ -41,5 +41,13 @@ public:
 		On error it throws a system_error exception */
 	void recvMsg(std::vector<uint8_t> &payload);
 
+	/* Opens a window for RMA operations in the registered space of the process */
 	struct RMAWindowRef openRMAWindow(int num_of_pages, int prot_flags = SCIF_PROT_READ | SCIF_PROT_WRITE);
+
+	/* This method is a simple wrapper arround scif_vwriteto */
+	void writeMsg(off_t dest, off_t src, std::size_t len);
+
+	/* This method writes on a remote location the value val 
+	to signify the completion of marked RMA operations */
+	void signalPeer(off_t dest, std::uint64_t val);
 };

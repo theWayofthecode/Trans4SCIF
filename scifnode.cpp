@@ -69,3 +69,17 @@ struct RMAWindowRef ScifNode::openRMAWindow(int num_of_pages, int prot_flags)
 		);
 	return rmawins.back()->getRMAWindowRef();
 }
+
+void ScifNode::writeMsg(off_t dest, off_t src, std::size_t len)
+{
+	if (scif_writeto(epd.get_epd_t(), src, len, dest, 0) == -1) {
+		throw std::system_error(errno, std::system_category());
+	}
+}
+
+void ScifNode::signalPeer(off_t dest, std::uint64_t val)
+{
+	if (scif_fence_signal(epd.get_epd_t(), 0, 0, dest, val, SCIF_FENCE_INIT_SELF | SCIF_SIGNAL_REMOTE) == -1) {
+		throw std::system_error(errno, std::system_category());
+	}
+}

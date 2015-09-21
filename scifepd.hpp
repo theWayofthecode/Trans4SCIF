@@ -14,6 +14,7 @@
 #pragma once
 #include <scif.h>
 #include <system_error>
+#include <iostream>
 
 class ScifEpd
 {
@@ -34,9 +35,12 @@ public:
 	~ScifEpd()
 	{
 		if (scif_close(epd) == -1) {
-			throw std::system_error(errno, std::system_category());
+			std::system_error e(errno, std::system_category());
+			std::cerr << "Warning: scif_close: " << e.what() << std::endl;
 		}
 	}
+
+	/* Maybe implement move assignment and constructor */
 
 	void set_epd_t(scif_epd_t e)
 	{

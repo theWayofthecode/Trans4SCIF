@@ -23,7 +23,9 @@ private:
 	struct RMAWindowRef winRef;
 
 public:
-	const std::size_t PAGE_SIZE = 4096;
+	static const std::size_t PAGE_SIZE = 0x1000;
+	static const std::size_t CACHELINE_SIZE = 0x40;
+
 
 	RMAWindow() = delete;
 
