@@ -22,23 +22,37 @@
 RMAWindow::RMAWindow(scif_epd_t epd, int num_of_pages, int prot_flags)
 {
 	this->epd = epd;
-	winRef.len = num_of_pages * PAGE_SIZE;
-	int err = posix_memalign(&winRef.mem, PAGE_SIZE, winRef.len);
+	len = num_of_pages * PAGE_SIZE;
+	int err = posix_memalign(&mem, PAGE_SIZE, len);
 	if (err) {
 		throw std::system_error(err, std::system_category());
 	}
-	bzero(winRef.mem, winRef.len);
-	winRef.off = scif_register(epd, winRef.mem, winRef.len, 0, prot_flags, 0);
-	if (winRef.off == SCIF_REGISTER_FAILED) {
+	bzero(mem, len);
+	off = scif_register(epd, mem, len, 0, prot_flags, 0);
+	if (off == SCIF_REGISTER_FAILED) {
 		throw std::system_error(errno, std::system_category());
 	}
 }
 
+RMAWindow::RMAWindow(RMAWindow&& w) 
+			 : epd{w.epd},
+			   mem{w.mem},
+			   off{w.off},
+			   len{w.len}
+{
+	w.epd = -1;
+	w.mem = nullptr;
+	w.off = -1;
+	w.len = -1;
+}
+
+/* Move assignment */
+
 RMAWindow::~RMAWindow()
 {
-	if (scif_unregister(epd, winRef.off, winRef.len) == -1) {
+	if (scif_unregister(epd, off, len) == -1) {
 		std::system_error e(errno, std::system_category());
 		std::cerr << "Warning: scif_close: " << e.what() << std::endl;
 	}
-	free(winRef.mem);
+	free(mem);
 }

@@ -62,12 +62,9 @@ void ScifNode::recvMsg(std::vector<uint8_t> &payload)
 	}
 }
 
-struct RMAWindowRef ScifNode::openRMAWindow(int num_of_pages, int prot_flags)
+RMAWindow ScifNode::createRMAWindow(int num_of_pages, int prot_flags)
 {
-	rmawins.push_back(
-		std::unique_ptr<RMAWindow>(new RMAWindow(epd.get_epd_t(), num_of_pages, prot_flags))
-		);
-	return rmawins.back()->getRMAWindowRef();
+	return RMAWindow(epd.get_epd_t(), num_of_pages, prot_flags);
 }
 
 void ScifNode::writeMsg(off_t dest, off_t src, std::size_t len)

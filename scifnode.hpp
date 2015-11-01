@@ -23,7 +23,6 @@ class ScifNode
 {
 private:
 	ScifEpd epd;
-	std::vector<std::unique_ptr<RMAWindow>> rmawins;
 public:
 	ScifNode() = delete;
 
@@ -42,7 +41,7 @@ public:
 	void recvMsg(std::vector<uint8_t> &payload);
 
 	/* Opens a window for RMA operations in the registered space of the process */
-	struct RMAWindowRef openRMAWindow(int num_of_pages, int prot_flags = SCIF_PROT_READ | SCIF_PROT_WRITE);
+	RMAWindow createRMAWindow(int num_of_pages, int prot_flags = SCIF_PROT_READ | SCIF_PROT_WRITE);
 
 	/* This method is a simple wrapper arround scif_vwriteto */
 	void writeMsg(off_t dest, off_t src, std::size_t len);

@@ -14,20 +14,27 @@
 #pragma once
 #include <cstddef>
 #include <scif.h>
-#include "rmawindowref.hpp"
 
 class RMAWindow
 {
 private:
 	scif_epd_t epd;
-	struct RMAWindowRef winRef;
+	void * mem;
+	off_t off;
+	std::size_t len;
 
 public:
 	static const std::size_t PAGE_SIZE = 0x1000;
 	static const std::size_t CACHELINE_SIZE = 0x40;
 
-
 	RMAWindow() = delete;
+	
+	RMAWindow(const RMAWindow& w) = delete;
+	RMAWindow& operator=(const RMAWindow& w) = delete;
+
+
+	RMAWindow(RMAWindow&& w);
+	RMAWindow& operator=(RMAWindow&& w) = delete;
 
 	/* Open a window in the registered memory space of the process of size equal to num_of_pages * PAGE_SIZE.
 		The prot_flags is formed by OR'ing SCIF_PROT_READ and SCIF_PROT_WRITE */
@@ -35,5 +42,7 @@ public:
 
 	~RMAWindow();
 
-	struct RMAWindowRef getRMAWindowRef () { return winRef; }
+	void * get_mem() { return mem; }
+	off_t get_off() { return off; }
+	std::size_t get_len() { return len; }
 };
