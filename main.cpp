@@ -8,6 +8,16 @@
 #include <utility>
 #include "scifnode.hpp"
 //#include "trans4node.hpp"
+#include "virt_circbuf.hpp"
+
+void test_virt_circbuf ()
+{
+	Virt_circbuf vc(0xff, 0x1000);
+
+	std::cout << vc.get_space() << std::endl;
+	vc.write(127);
+	std::cout << vc.get_space() << std::endl;
+}
 
 void connecter (uint16_t target_node_id, uint16_t target_port)
 {
@@ -33,6 +43,9 @@ void connecter (uint16_t target_node_id, uint16_t target_port)
 	while (*mem != sizeof("Hallo"));
 	char *s = static_cast<char *>(win.get_mem());
 	std::cout << std::string(s+64, sizeof("Hallo")) << std::endl;
+
+	//test virt_circbuf
+	test_virt_circbuf();
 }
 
 void listener (uint16_t listening_port)

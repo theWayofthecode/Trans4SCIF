@@ -14,6 +14,7 @@
 #pragma once
 #include <cstddef>
 #include <scif.h>
+#include "constants.hpp"
 
 class RMAWindow
 {
@@ -24,9 +25,6 @@ private:
 	std::size_t len;
 
 public:
-	static const std::size_t PAGE_SIZE = 0x1000;
-	static const std::size_t CACHELINE_SIZE = 0x40;
-
 	RMAWindow() = delete;
 	
 	RMAWindow(const RMAWindow& w) = delete;
