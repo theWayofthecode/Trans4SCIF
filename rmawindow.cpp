@@ -50,9 +50,13 @@ RMAWindow::RMAWindow(RMAWindow&& w)
 
 RMAWindow::~RMAWindow()
 {
-	if (scif_unregister(epd, off, len) == -1) {
-		std::system_error e(errno, std::system_category());
-		std::cerr << "Warning: scif_close: " << e.what() << std::endl;
+	if (epd != -1) {
+		if (scif_unregister(epd, off, len) == -1) {
+			std::system_error e(errno, std::system_category());
+			std::cerr << "Warning: scif_close: " << e.what() << std::endl;
+		}
 	}
-	free(mem);
+	if (mem) {
+		free(mem);
+	}
 }

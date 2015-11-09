@@ -9,14 +9,36 @@
 #include "scifnode.hpp"
 //#include "trans4node.hpp"
 #include "virt_circbuf.hpp"
+#include "circbuf.hpp"
 
 void test_virt_circbuf ()
 {
 	Virt_circbuf vc(0xff, 0x1000);
 
 	std::cout << vc.get_space() << std::endl;
-	vc.write(127);
-	std::cout << vc.get_space() << std::endl;
+	std::size_t written = vc.write(60);
+	std::cout << vc.get_space() <<std::endl << written << std::endl;
+}
+
+void test_circbuf(ScifNode& n)
+{
+	RMAWindow w = n.createRMAWindow(1);
+	Circbuf cb(w);
+	std::vector<uint8_t> v{0xD, 0xB, 0xC};
+	std::cout << cb.get_space() << std::endl;
+	std::cout << cb.write(50) << std::endl;
+	std::cout << cb.write(v) << std::endl;
+	std::cout << cb.write(5000) << std::endl;
+	std::cout << cb.get_space() << std::endl;
+
+	std::vector<uint8_t> vread(3);
+	std::cout << cb.read(40) << std::endl;
+	std::cout << cb.read(3) << std::endl;
+	std::cout << cb.read(5000) << std::endl;
+	std::cout << cb.write(v) << std::endl;
+	std::cout << cb.read(vread) << std::endl;
+	std::cout << cb.get_space() << std::endl;
+	std::cout << std::hex << static_cast<int>(vread.front()) << std::endl;
 }
 
 void connecter (uint16_t target_node_id, uint16_t target_port)
@@ -45,7 +67,7 @@ void connecter (uint16_t target_node_id, uint16_t target_port)
 	std::cout << std::string(s+64, sizeof("Hallo")) << std::endl;
 
 	//test virt_circbuf
-	test_virt_circbuf();
+	//test_virt_circbuf();
 }
 
 void listener (uint16_t listening_port)
@@ -64,6 +86,9 @@ void listener (uint16_t listening_port)
 	uint8_t *p = reinterpret_cast<uint8_t *>(&off);
 	std::vector<uint8_t> v(p, p + sizeof(off_t));
 	n.sendMsg(v);
+
+	//Test circbuf
+	test_circbuf(n);
 
 	//writeMsg
 	char *mem = static_cast<char *>(win.get_mem());

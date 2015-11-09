@@ -25,8 +25,7 @@ private:
 	std::size_t len;
 
 public:
-	RMAWindow() = delete;
-	
+	/* Copying is not allowed. */
 	RMAWindow(const RMAWindow& w) = delete;
 	RMAWindow& operator=(const RMAWindow& w) = delete;
 

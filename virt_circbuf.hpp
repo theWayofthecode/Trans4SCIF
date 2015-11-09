@@ -14,6 +14,8 @@
 #pragma once
 
 #include <cstddef>
+#include "constants.hpp"
+
 
 class Virt_circbuf
 {
@@ -24,6 +26,12 @@ private:
 	std::size_t space;
 	off_t wr;
 	off_t rd;
+	
+	std::size_t round_to_cacheline(std::size_t s) { return ((s+CACHELINE_SIZE-1)/CACHELINE_SIZE)*CACHELINE_SIZE; }
+
+protected:
+	off_t get_wr() { return wr; }
+	off_t get_rd() { return rd; }
 
 public:
 	Virt_circbuf(off_t rmaoff, std::size_t len) :
