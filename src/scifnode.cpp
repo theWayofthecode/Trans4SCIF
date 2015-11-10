@@ -17,6 +17,7 @@
 
 ScifNode::ScifNode(uint16_t target_node_id, uint16_t target_port)
 {
+	/* connect */
 	struct scif_portID target_addr;
 	target_addr.node = target_node_id;
 	target_addr.port = target_port;

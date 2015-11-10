@@ -31,6 +31,7 @@ public:
 
 
 	RMAWindow(RMAWindow&& w);
+	/* todo: to be defined */
 	RMAWindow& operator=(RMAWindow&& w) = delete;
 
 	/* Open a window in the registered memory space of the process of size equal to num_of_pages * PAGE_SIZE.
