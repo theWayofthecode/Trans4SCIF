@@ -12,17 +12,17 @@
 */
 #include <cstdlib>
 #include <system_error>
-#include <new>     
 #include <scif.h>
 #include <iostream>
 #include <cstring>
 
 #include "rmawindow.hpp"
 
-RMAWindow::RMAWindow(scif_epd_t epd, int num_of_pages, int prot_flags)
+RMAWindow::RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags)
 {
 	this->epd = epd;
-	len = num_of_pages * PAGE_SIZE;
+	this->len = len;
+	//TODO: make sure to round up len or document the requirements
 	int err = posix_memalign(&mem, PAGE_SIZE, len);
 	if (err) {
 		throw std::system_error(err, std::system_category());
@@ -42,11 +42,22 @@ RMAWindow::RMAWindow(RMAWindow&& w)
 {
 	w.epd = -1;
 	w.mem = nullptr;
-	w.off = -1;
-	w.len = -1;
+	w.off = 0;
+	w.len = 0;
 }
 
-/* Move assignment */
+RMAWindow& RMAWindow::operator=(RMAWindow&& w)
+{
+	epd = w.epd;
+	mem = w.mem;
+	off = w.off;
+	len = w.len;
+	w.epd = -1;
+	w.mem = nullptr;
+	w.off = 0;
+	w.len = 0;
+	return *this;
+}
 
 RMAWindow::~RMAWindow()
 {

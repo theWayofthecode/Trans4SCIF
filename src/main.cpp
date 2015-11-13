@@ -20,9 +20,10 @@
 #include <thread>
 #include <utility>
 #include "scifnode.hpp"
-//#include "trans4node.hpp"
+#include "trans4node.hpp"
 #include "virt_circbuf.hpp"
 #include "circbuf.hpp"
+#include "util.hpp"
 
 void test_virt_circbuf ()
 {
@@ -56,9 +57,14 @@ void test_circbuf(ScifNode& n)
 
 void connecter (uint16_t target_node_id, uint16_t target_port)
 {
+	Trans4Node tn(target_node_id, target_port);
+}
+
+void connecter_old (uint16_t target_node_id, uint16_t target_port)
+{
 	ScifNode n(target_node_id, target_port);
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 //	Trans4Node tn(target_node_id, target_port+1);
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 
 	//open a window and send the local offset
@@ -85,8 +91,12 @@ void connecter (uint16_t target_node_id, uint16_t target_port)
 
 void listener (uint16_t listening_port)
 {
+	Trans4Node tn(listening_port);
+}
+
+void listener_old (uint16_t listening_port)
+{
 	ScifNode n(listening_port);
-//	Trans4Node tn(listening_port+1);
 
 	//receive remote offset
 	std::vector<uint8_t> vroff(sizeof(off_t));
@@ -95,6 +105,7 @@ void listener (uint16_t listening_port)
 
 	//open a window and send the local offset
 	RMAWindow win = n.createRMAWindow(1);
+	std::cout << win.get_len() << std::endl << std::endl;
 	off_t off = win.get_off();
 	uint8_t *p = reinterpret_cast<uint8_t *>(&off);
 	std::vector<uint8_t> v(p, p + sizeof(off_t));
@@ -110,9 +121,20 @@ void listener (uint16_t listening_port)
 	n.signalPeer(roff, sizeof("Hallo"));
 }
 
+void test_util()
+{
+	uint64_t i = 0xabcabcabc;
+	uint64_t j = 0;
+	std::vector<uint8_t> v;
+	inttype_to_vec_le(i, v);
+	vec_to_inttype_le(v, j);
+	std::cout << std::hex << j << std::endl;
+}
+
+
 int main (int argc, char *argv[])
 {
-
+	test_util();
 	if (argc == 3) {
 		connecter(std::atoi(argv[1]), std::atoi(argv[2]));
 	} else if (argc == 2) {

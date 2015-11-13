@@ -17,20 +17,21 @@
 #include <vector>
 
 template<typename inttype>
-void inttype_to_vec_le(inttype &in, std::vector<uint8_t> &out)
+void inttype_to_vec_le(inttype in, std::vector<uint8_t> &out)
 {
 	for (int i = 0; i < sizeof(in); i++, in >>= 8) {
-		out.push_back(static_cast<uint8_t>(in));
+		out.push_back(in & 0xff);
 	}
 }
 
+/* Remove from the end of the vector */
 template<typename inttype>
-void vec_to_inttype_le(const std::vector<uint8_t> &in, inttype &out)
+void vec_to_inttype_le(std::vector<uint8_t> &in, inttype &out)
 {
 	out = 0;
-	int sz = std::min(sizeof(out), in.size());
-	auto it = in.cbegin()+sz-1;
-	for (int i = 0; i < sz; i++, --it) {
+	const int sz = std::min(sizeof(out), in.size());
+	for (auto it = in.cbegin()+sz-1; it >= in.cbegin(); --it) {
 		out = (out << 8) | *it;
 	}
+	in.erase(in.begin(), in.begin()+sz);
 }

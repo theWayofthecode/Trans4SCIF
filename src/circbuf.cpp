@@ -26,6 +26,7 @@ std::size_t Circbuf::write(std::vector<uint8_t>& in)
 	uint8_t *base_mem = static_cast<uint8_t *>(win.get_mem());
 	std::size_t len2wr = write(in.size());
 	std::memcpy(base_mem+wr, in.data(), len2wr);
+	in.erase(in.begin(), in.begin()+len2wr);
 	return len2wr;
 }
 

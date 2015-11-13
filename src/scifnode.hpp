@@ -32,11 +32,11 @@ public:
 	/* Construct a listening node */
 	ScifNode(uint16_t listening_port);
 
-	/* Sends synchronously payload.size() bytes and returns.
+	/* Sends synchronously payload.size() bytes.
 		On error it throws a system_error exception */
 	void sendMsg(std::vector<uint8_t> &payload);
 
-	/* Receivs synchronously payload.size() bytes and returns.
+	/* Receivs synchronously payload.size() bytes.
 		On error it throws a system_error exception */
 	void recvMsg(std::vector<uint8_t> &payload);
 

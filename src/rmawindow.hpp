@@ -31,15 +31,16 @@ public:
 
 
 	RMAWindow(RMAWindow&& w);
-	/* todo: to be defined */
-	RMAWindow& operator=(RMAWindow&& w) = delete;
 
-	/* Open a window in the registered memory space of the process of size equal to num_of_pages * PAGE_SIZE.
+	RMAWindow& operator=(RMAWindow&& w);
+
+	/* Open a window in the registered memory space of the process. len should be multiple of page_size.
 		The prot_flags is formed by OR'ing SCIF_PROT_READ and SCIF_PROT_WRITE */
-	RMAWindow(scif_epd_t epd, int num_of_pages, int prot_flags);
+	RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags);
 
 	~RMAWindow();
 
+	/* Think if this brakes encapsulation */
 	void * get_mem() { return mem; }
 	off_t get_off() { return off; }
 	std::size_t get_len() { return len; }
