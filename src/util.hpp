@@ -14,7 +14,11 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 #include <vector>
+
+/* args must be unsigned !!! */
+#define ROUND_TO_BOUNDARY(s, b) ((s+b-1) & (-b))
 
 template<typename inttype>
 void inttype_to_vec_le(inttype in, std::vector<uint8_t> &out)
@@ -24,14 +28,14 @@ void inttype_to_vec_le(inttype in, std::vector<uint8_t> &out)
 	}
 }
 
-/* Remove from the end of the vector */
 template<typename inttype>
-void vec_to_inttype_le(std::vector<uint8_t> &in, inttype &out)
+void vec_to_inttype_le(const std::vector<uint8_t> &in, inttype &out)
 {
 	out = 0;
-	const int sz = std::min(sizeof(out), in.size());
-	for (auto it = in.cbegin()+sz-1; it >= in.cbegin(); --it) {
+	for (auto it = in.cbegin() + std::min(sizeof(out), in.size()) - 1; 
+			it >= in.cbegin(); 
+			--it) {
 		out = (out << 8) | *it;
 	}
-	in.erase(in.begin(), in.begin()+sz);
 }
+

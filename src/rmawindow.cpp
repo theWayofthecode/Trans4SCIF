@@ -21,16 +21,15 @@
 RMAWindow::RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags)
 {
 	this->epd = epd;
-	this->len = len;
-	//TODO: make sure to round up len or document the requirements
-	int err = posix_memalign(&mem, PAGE_SIZE, len);
+	this->len = ROUND_TO_BOUNDARY(len, PAGE_SIZE);
+	int err = posix_memalign(&mem, PAGE_SIZE, this->len);
 	if (err) {
-		throw std::system_error(err, std::system_category());
+		throw std::system_error(err, std::system_category(), __FILE__LINE__);
 	}
-	bzero(mem, len);
-	off = scif_register(epd, mem, len, 0, prot_flags, 0);
+	bzero(mem, this->len);
+	off = scif_register(epd, mem, this->len, 0, prot_flags, 0);
 	if (off == SCIF_REGISTER_FAILED) {
-		throw std::system_error(errno, std::system_category());
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 	}
 }
 
@@ -61,13 +60,11 @@ RMAWindow& RMAWindow::operator=(RMAWindow&& w)
 
 RMAWindow::~RMAWindow()
 {
-	if (epd != -1) {
-		if (scif_unregister(epd, off, len) == -1) {
-			std::system_error e(errno, std::system_category());
-			std::cerr << "Warning: scif_close: " << e.what() << std::endl;
-		}
-	}
 	if (mem) {
 		free(mem);
+	}
+	if (scif_unregister(epd, off, len) == -1) {
+		std::system_error e(errno, std::system_category(), __FILE__LINE__);
+		std::cerr << "Warning: scif_unregister: " << e.what() << std::endl;
 	}
 }

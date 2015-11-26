@@ -17,7 +17,7 @@
 #include <vector>
 #include <memory>
 #include "scifepd.hpp"
-#include "rmawindow.hpp"
+#include "rmawindow_factory.hpp"
 
 class ScifNode
 {
@@ -26,22 +26,27 @@ private:
 public:
 	ScifNode() = delete;
 
+	/* TODO: Prohibit copying and moving? */
+
 	/* Construct a connecting node */
 	ScifNode(uint16_t target_node_id, uint16_t target_port);
 
 	/* Construct a listening node */
 	ScifNode(uint16_t listening_port);
 
-	/* Sends synchronously payload.size() bytes.
-		On error it throws a system_error exception */
-	void sendMsg(std::vector<uint8_t> &payload);
+	/* Sends synchronously payload.size() bytes. Returns when the payload is delivered
+		to the endpoints receive buffer (of size 4095 bytes). On error it throws a system_error exception 
+		TODO: There is deadlock case when peers try to send msgs larger than 4K. With scif_poll can be solved.
+		On the other hand it is used only for controls, but still if one sends constantly msgs and the other one doesn't reveive any, it may block.*/
+	std::size_t sendMsg(std::vector<uint8_t> &payload);
 
-	/* Receivs synchronously payload.size() bytes.
-		On error it throws a system_error exception */
-	void recvMsg(std::vector<uint8_t> &payload);
+	/* Receivs synchronously size bytes.
+		On error it throws a system_error exception 
+		TODO: rething about boundary preservation. Shouldn't bytes be discarded?*/
+	std::vector<uint8_t> recvMsg(std::size_t size);
 
-	/* Opens a window for RMA operations in the registered space of the process */
-	RMAWindow createRMAWindow(int num_of_pages, int prot_flags = SCIF_PROT_READ | SCIF_PROT_WRITE);
+	/* Returns an RMAWindow factory */
+	RMAWindow_factory create_RMAWindow_factory() { return RMAWindow_factory{epd.get_epd_t()}; }
 
 	/* This method is a simple wrapper arround scif_vwriteto */
 	void writeMsg(off_t dest, off_t src, std::size_t len);
@@ -49,4 +54,10 @@ public:
 	/* This method writes on a remote location the value val 
 	to signify the completion of marked RMA operations */
 	void signalPeer(off_t dest, std::uint64_t val);
+
+	/**
+	 * Checks whether there is data to be received by recvMsg (i.e. the call will not block)
+	 * TODO: underscore stylve vs Hungarian (check also BjarneFAQ)
+	 */
+	 bool has_recv_msg();
 };

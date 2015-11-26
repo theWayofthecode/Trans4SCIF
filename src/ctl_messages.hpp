@@ -12,13 +12,17 @@
 */
 
 #pragma once
-
 #include <cstddef>
-#include <string>
+#include <vector>
 
-#define INT_TO_STR_(i) #i
-#define INT_TO_STR(i) INT_TO_STR_(i)
-#define __FILE__LINE__ (__FILE__ + std::string(":") + INT_TO_STR(__LINE__))
+/**
+ * The type is of known size for any platform in order to avoid corruption
+ * in case the size of off_t and std::size_t is different for the platforms of the endpoints.
+ */
+struct RMA_id {
+	int64_t off;
+	uint64_t size;
+};
 
-constexpr std::size_t PAGE_SIZE = 0x1000;
-constexpr std::size_t CACHELINE_SIZE = 0x40;
+std::vector<uint8_t> pack_RMA_id_msg(RMA_id osp);
+RMA_id unpack_RMA_id_msg(std::vector<uint8_t> msg);

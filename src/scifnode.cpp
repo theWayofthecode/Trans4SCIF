@@ -13,6 +13,7 @@
 
 #include <system_error>
 #include "scifnode.hpp"
+#include "constants.hpp"
 
 
 ScifNode::ScifNode(uint16_t target_node_id, uint16_t target_port)
@@ -22,62 +23,77 @@ ScifNode::ScifNode(uint16_t target_node_id, uint16_t target_port)
 	target_addr.node = target_node_id;
 	target_addr.port = target_port;
 	if (scif_connect(epd.get_epd_t(), &target_addr) == -1)
-		throw std::system_error(errno, std::system_category());
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 }
 
 ScifNode::ScifNode(uint16_t listening_port)
 {
 	/* bind */
 	if (scif_bind(epd.get_epd_t(), listening_port) == -1)
-		throw std::system_error(errno, std::system_category());
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 
 	/* listen (backlog = 1) */
 	if (scif_listen(epd.get_epd_t(), 1) == -1)
-		throw std::system_error(errno, std::system_category());
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 
 	/* accept */
 	scif_epd_t acc_epd_t;
 	struct scif_portID peer_addr;
 	if (scif_accept(epd.get_epd_t(), &peer_addr, &acc_epd_t, SCIF_ACCEPT_SYNC) == -1)
-		throw std::system_error(errno, std::system_category());
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 	epd.set_epd_t(acc_epd_t);
 }
 
-void ScifNode::sendMsg(std::vector<uint8_t> &payload)
+std::size_t ScifNode::sendMsg(std::vector<uint8_t> &payload)
 {
-	for (int i = 0; i < payload.size();) {
-		int bytes = scif_send(epd.get_epd_t(), &payload[i], payload.size() - i, 0);
+	std::size_t bytes_sent = 0;
+	while (bytes_sent < payload.size()) {
+		int bytes = scif_send(epd.get_epd_t(), &payload[bytes_sent], payload.size() - bytes_sent, 0);
+		/* TODO: Maybe in case of error earlier return? */
 		if (bytes == -1)
-			throw std::system_error(errno, std::system_category());
-		i += bytes;
+			throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+		bytes_sent += bytes;
 	}
+	return bytes_sent;
 }
 
-void ScifNode::recvMsg(std::vector<uint8_t> &payload)
+std::vector<uint8_t> ScifNode::recvMsg(std::size_t size)
 {
-	for (int i = 0; i < payload.size();) {
-		int bytes = scif_recv(epd.get_epd_t(), &payload[i], payload.size() - i, 0);
+	std::vector<uint8_t> payload(size);
+	int index = 0;
+	while (size) {
+		int bytes = scif_recv(epd.get_epd_t(), &payload[index], size, 0);
+		/* TODO: Maybe in case of error earlier return? */
 		if (bytes == -1)
-			throw std::system_error(errno, std::system_category());
-		i += bytes;
+			throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+		size -= bytes;
+		index += bytes;
 	}
-}
-
-RMAWindow ScifNode::createRMAWindow(int num_of_pages, int prot_flags)
-{
-	return RMAWindow(epd.get_epd_t(), num_of_pages, prot_flags);
+	return payload;
 }
 
 void ScifNode::writeMsg(off_t dest, off_t src, std::size_t len)
 {
 	if (scif_writeto(epd.get_epd_t(), src, len, dest, 0) == -1) {
-		throw std::system_error(errno, std::system_category());
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 	}
 }
 
 void ScifNode::signalPeer(off_t dest, std::uint64_t val)
 {
 	if (scif_fence_signal(epd.get_epd_t(), 0, 0, dest, val, SCIF_FENCE_INIT_SELF | SCIF_SIGNAL_REMOTE) == -1) {
-		throw std::system_error(errno, std::system_category());
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 	}
+}
+
+bool ScifNode::has_recv_msg()
+{
+	struct scif_pollepd pepd;
+	pepd.epd = epd.get_epd_t();
+	pepd.events = SCIF_POLLIN;
+	pepd.revents = 0;
+	if (scif_poll(&pepd, 1, 0) == -1) {
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);		
+	}
+	return pepd.revents == SCIF_POLLIN;
 }

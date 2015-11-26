@@ -13,12 +13,13 @@
 
 #include <algorithm>
 #include "virt_circbuf.hpp"
+#include "util.hpp"
 
 
 std::size_t Virt_circbuf::write(std::size_t wr_len)
 {
 	std::size_t plen = std::min(std::min(maxlen-wr, space), wr_len);
-	std::size_t aligned_len = round_to_cacheline(plen);
+	std::size_t aligned_len = ROUND_TO_BOUNDARY(plen, CACHELINE_SIZE);
 	wr = (wr+aligned_len) % maxlen;
 	space -= aligned_len;
 	return plen;
@@ -27,7 +28,7 @@ std::size_t Virt_circbuf::write(std::size_t wr_len)
 std::size_t Virt_circbuf::read(std::size_t rd_len)
 {
 	std::size_t plen = std::min(std::min(maxlen-rd, maxlen-space), rd_len);
-	std::size_t aligned_len = round_to_cacheline(plen);
+	std::size_t aligned_len = ROUND_TO_BOUNDARY(plen, CACHELINE_SIZE);
 	rd = (rd+aligned_len) % maxlen;
 	space += aligned_len;
 	return plen;

@@ -16,17 +16,21 @@
 #include <cstddef>
 #include <vector>
 #include "virt_circbuf.hpp"
-#include "rmawindow.hpp"
+#include "rmawindow_factory.hpp"
 
+/**
+ * TODO: copy prohibited. Think about move 
+ */
 class Circbuf : public Virt_circbuf
 {
 private:
+	RMAWindow_factory win_factory;
 	RMAWindow win;
 
 public:
-	Circbuf(RMAWindow& w) : Virt_circbuf(w.get_off(), w.get_len()), win{std::move(w)} {}
+	Circbuf(std::size_t len, RMAWindow_factory win_a);
 
-	/* copy move constructors: Copy prohibited, move allowed (defined) */
+	/* TODO: copy move constructors: Copy prohibited, move allowed (defined) */
 
 	/* Unhide the inherited write/read methods */
 	using Virt_circbuf::write;

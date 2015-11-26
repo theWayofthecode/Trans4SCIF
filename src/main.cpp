@@ -20,7 +20,7 @@
 #include <thread>
 #include <utility>
 #include "scifnode.hpp"
-#include "trans4node.hpp"
+//#include "trans4node.hpp"
 #include "virt_circbuf.hpp"
 #include "circbuf.hpp"
 #include "util.hpp"
@@ -33,7 +33,7 @@ void test_virt_circbuf ()
 	std::size_t written = vc.write(60);
 	std::cout << vc.get_space() <<std::endl << written << std::endl;
 }
-
+/*
 void test_circbuf(ScifNode& n)
 {
 	RMAWindow w = n.createRMAWindow(1);
@@ -53,13 +53,16 @@ void test_circbuf(ScifNode& n)
 	std::cout << cb.read(vread) << std::endl;
 	std::cout << cb.get_space() << std::endl;
 	std::cout << std::hex << static_cast<int>(vread.front()) << std::endl;
-}
+}*/
 
 void connecter (uint16_t target_node_id, uint16_t target_port)
 {
-	Trans4Node tn(target_node_id, target_port);
+	ScifNode sn(target_node_id, target_port);
+	RMAWindow_allocator win_allocator = sn.create_RMAWindow_allocator();
+	RMAWindow win = win_allocator.allocate(0x1000);
+	win_allocator.deallocate(win);
 }
-
+/*
 void connecter_old (uint16_t target_node_id, uint16_t target_port)
 {
 	ScifNode n(target_node_id, target_port);
@@ -88,15 +91,17 @@ void connecter_old (uint16_t target_node_id, uint16_t target_port)
 	//test virt_circbuf
 	//test_virt_circbuf();
 }
-
+*/
 void listener (uint16_t listening_port)
 {
-	Trans4Node tn(listening_port);
+	ScifNode sn(listening_port);
+//	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
-
+/*
 void listener_old (uint16_t listening_port)
 {
 	ScifNode n(listening_port);
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 	//receive remote offset
 	std::vector<uint8_t> vroff(sizeof(off_t));
@@ -120,7 +125,7 @@ void listener_old (uint16_t listening_port)
 	n.writeMsg(roff + 64, win.get_off() + 64, sizeof("Hallo"));
 	n.signalPeer(roff, sizeof("Hallo"));
 }
-
+*/
 void test_util()
 {
 	uint64_t i = 0xabcabcabc;

@@ -26,8 +26,6 @@ private:
 	std::size_t space;
 	off_t wr;
 	off_t rd;
-	
-	std::size_t round_to_cacheline(std::size_t s) { return ((s+CACHELINE_SIZE-1)/CACHELINE_SIZE)*CACHELINE_SIZE; }
 
 protected:
 	off_t get_wr() { return wr; }

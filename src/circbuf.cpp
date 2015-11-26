@@ -17,9 +17,17 @@
 #include <cstring>
 #include <cstdint>
 #include <iostream>
+#include <system_error>
 #include "circbuf.hpp"
-#include "rmawindow.hpp"
 
+/* TODO: Read/write access rights (maybe have it as default only hera) */
+Circbuf::Circbuf(std::size_t len, RMAWindow_factory win_a) : 
+win_factory{win_a},
+win{win_factory.generate(len)},
+Virt_circbuf(win.get_off(), win.get_len())
+{}
+
+/** TODO: have them again a look also at interface level */
 std::size_t Circbuf::write(std::vector<uint8_t>& in)
 {
 	off_t wr = get_wr();
@@ -30,6 +38,7 @@ std::size_t Circbuf::write(std::vector<uint8_t>& in)
 	return len2wr;
 }
 
+/** TODO: have them again a look also at interface level */
 std::size_t Circbuf::read(std::vector<uint8_t>& out)
 {
 	off_t rd = get_rd();
