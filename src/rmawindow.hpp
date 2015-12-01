@@ -30,9 +30,7 @@ public:
 	RMAWindow(const RMAWindow& w) = delete;
 	RMAWindow& operator=(const RMAWindow& w) = delete;
 
-
 	RMAWindow(RMAWindow&& w);
-
 	RMAWindow& operator=(RMAWindow&& w);
 
 	/** 

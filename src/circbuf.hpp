@@ -15,8 +15,9 @@
 
 #include <cstddef>
 #include <vector>
+#include <memory>
 #include "virt_circbuf.hpp"
-#include "rmawindow_factory.hpp"
+#include "rmawindow.hpp"
 
 /**
  * TODO: copy prohibited. Think about move 
@@ -24,18 +25,13 @@
 class Circbuf : public Virt_circbuf
 {
 private:
-	RMAWindow_factory win_factory;
 	RMAWindow win;
 
 public:
-	Circbuf(std::size_t len, RMAWindow_factory win_a);
+	Circbuf(RMAWindow w) : Virt_circbuf(w.get_off(), w.get_len()), win{std::move(w)} {}
 
 	/* TODO: copy move constructors: Copy prohibited, move allowed (defined) */
 
-	/* Unhide the inherited write/read methods */
-	using Virt_circbuf::write;
-	using Virt_circbuf::read;
-
-	std::size_t write(std::vector<uint8_t>& in);
-	std::size_t read(std::vector<uint8_t>& out);
+	std::size_t write(const std::vector<uint8_t>& in);
+	std::vector<uint8_t> read(std::size_t);
 };

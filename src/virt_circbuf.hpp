@@ -14,8 +14,9 @@
 #pragma once
 
 #include <cstddef>
+#include <iostream>
 #include "constants.hpp"
-
+#include "util.hpp"
 
 class Virt_circbuf
 {
@@ -45,7 +46,11 @@ public:
 
 	std::size_t get_space() { return space; }
 
-	std::size_t write(std::size_t len);
+	std::size_t wr_advance(std::size_t len);
 
-	std::size_t read(std::size_t len);
+	std::size_t rd_advance(std::size_t len);
+
+	void wr_align();
+
+	void rd_align();
 };

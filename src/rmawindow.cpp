@@ -63,8 +63,10 @@ RMAWindow::~RMAWindow()
 	if (mem) {
 		free(mem);
 	}
-	if (scif_unregister(epd, off, len) == -1) {
-		std::system_error e(errno, std::system_category(), __FILE__LINE__);
-		std::cerr << "Warning: scif_unregister: " << e.what() << std::endl;
+	if (epd != -1) {
+		if (scif_unregister(epd, off, len) == -1) {
+			std::system_error e(errno, std::system_category(), __FILE__LINE__);
+			std::cerr << "Warning: scif_unregister: " << e.what() << std::endl;
+		}
 	}
 }

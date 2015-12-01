@@ -19,10 +19,10 @@
 #include <thread>
 #include "../src/scifnode.hpp"
 #include "../src/util.hpp"
-#include "../src/rmawindow_factory.hpp"
 #include "../src/rmawindow.hpp"
 #include "../src/ctl_messages.hpp"
 #include "../src/virt_circbuf.hpp"
+#include "../src/circbuf.hpp"
 
 
 #ifdef XEONPHI
@@ -171,7 +171,7 @@ TEST_CASE("ScifNode send/receive", "[scifnode]")
 	}
 	barrier(sn);
 }
-
+/*
 TEST_CASE("ScifNode RMAWindow_factory", "[scifnode]")
 {
 	ScifNode sn(ADDR);
@@ -179,7 +179,7 @@ TEST_CASE("ScifNode RMAWindow_factory", "[scifnode]")
 
 	SECTION("Generate window of one page")
 	{
-		RMAWindow win{win_factory.generate(0x1000)};
+		RMAWindow win{win_factory.generate(0x1000, SCIF_PROT_WRITE)};
 		REQUIRE( win.get_len() == 0x1000 );
 		REQUIRE_FALSE( win.get_mem() == nullptr );
 		REQUIRE_FALSE( win.get_off() == -1 );
@@ -187,21 +187,20 @@ TEST_CASE("ScifNode RMAWindow_factory", "[scifnode]")
 
 	SECTION("Generate window of non-multiple of page size")
 	{
-		RMAWindow win{win_factory.generate(0x565)};
+		RMAWindow win{win_factory.generate(0x565, SCIF_PROT_WRITE)};
 		REQUIRE( win.get_len() == 0x1000 );
 	}
 	barrier(sn);
-}
+}*/
 
 TEST_CASE("ScifNode writeMsg", "[scifnode]")
 {
 	ScifNode sn(ADDR);
 
-	/* Allocate window for RMAs */
-	RMAWindow_factory win_factory{sn.create_RMAWindow_factory()};
+	SECTION("Write receive test", "[scifnode]")
 	{ //The scope is necessary to make sure that the RMAWindows are destroyed before ScifNodes are destroyed
-		RMAWindow win_recv{win_factory.generate(0x1000, SCIF_PROT_WRITE)};
-		RMAWindow win_send{win_factory.generate(0x1000, SCIF_PROT_READ)};
+		RMAWindow win_recv(sn.create_RMAWindow(0x1000, SCIF_PROT_WRITE));
+		RMAWindow win_send(sn.create_RMAWindow(0x1000, SCIF_PROT_READ));
 
 		/* Exchange RMA offs with peer */
 		std::vector<uint8_t> msg = pack_RMA_id_msg({win_recv.get_off(), win_recv.get_len()});
@@ -239,10 +238,9 @@ TEST_CASE("ScifNode signalPeer", "[scifnode]")
 {
 	ScifNode sn(ADDR);
 
-	/* Generate a window for RMAs */
-	RMAWindow_factory win_factory{sn.create_RMAWindow_factory()};
-	{ //The scope is necessary to make sure that the RMAWindows are destroyed before ScifNodes are destroyed
-		RMAWindow win{win_factory.generate(0x1000, SCIF_PROT_WRITE)};
+	SECTION("Peer node notification test")
+	{
+		RMAWindow win{sn.create_RMAWindow(0x1000, SCIF_PROT_WRITE)};
 
 		/* Exchange RMA offs with peer */
 		std::vector<uint8_t> msg = pack_RMA_id_msg({win.get_off(), win.get_len()});
@@ -276,8 +274,94 @@ TEST_CASE("ScifNode has_recv_msg", "[scifnode]")
 
 /**
  * circular buffer module tests
+ */
  
-TEST_CASE("Virt_circbuf tests")
+TEST_CASE("Virt_circbuf tests", "[Virt_circbuf]")
 {
-	
-}*/
+	Virt_circbuf vcb(0X1000, 0X1000);
+
+	SECTION("Wr and rd advance and space preservation")
+	{
+		REQUIRE( 0X40 == vcb.wr_advance(0x40) );
+		REQUIRE( (0x1000-0x40) == vcb.get_space() );
+		REQUIRE( 0X40 == vcb.rd_advance(0x40) );
+		REQUIRE( (0x1000) == vcb.get_space() );
+	}
+
+	SECTION("Writing to full buffer")
+	{
+		vcb.wr_advance(0x1000);
+		REQUIRE( 0 == vcb.get_space() );
+		REQUIRE( 0 == vcb.wr_advance(1) );
+	}
+
+	SECTION("Reading from empty buffer")
+	{
+		REQUIRE( 0x1000 == vcb.get_space() );
+		REQUIRE( 0 == vcb.rd_advance(1) );
+		REQUIRE( 0x1000 == vcb.get_space() );
+	}
+
+	SECTION("check if wr wraps up when reaching to the end")
+	{
+		off_t wr = vcb.get_wr_rmaoff();
+		vcb.wr_advance(0x1000);
+		REQUIRE( wr == vcb.get_wr_rmaoff() );
+	}
+
+	SECTION("wr align")
+	{
+		vcb.wr_advance(0x33);
+		REQUIRE_FALSE( 0 == (vcb.get_wr_rmaoff() % CACHELINE_SIZE) );
+		vcb.wr_align();
+		REQUIRE( 0 == (vcb.get_wr_rmaoff() % CACHELINE_SIZE) );
+	}
+
+	SECTION("rd align")
+	{
+		vcb.wr_advance(0x63);
+		vcb.rd_advance(0x20);
+		REQUIRE( (0x1000-(0x63-0x20)) == vcb.get_space() );
+		//Note the position of wr_align()
+		vcb.wr_align();
+		vcb.rd_align();
+		REQUIRE( (0x1000-CACHELINE_SIZE) == vcb.get_space() );
+	}
+}
+
+TEST_CASE("circbuf tests", "[circbuf]")
+{
+	ScifNode sn(ADDR);
+
+	SECTION("Write read test")
+	{
+		std::size_t circbuf_len = 0x1000;
+		Circbuf cbuf(sn.create_RMAWindow(circbuf_len, SCIF_PROT_WRITE));
+
+		REQUIRE( (cbuf.get_wr_rmaoff() % 0x40) == 0 );
+
+		/* Prepare source */
+		std::vector<uint8_t> v;
+		int payload = 0xABCCBA;
+		inttype_to_vec_le(payload, v);
+
+		//calling advance to also test that advacing and read/writing together works as expected
+		cbuf.wr_advance(sizeof(std::uint64_t));
+		REQUIRE( sizeof(payload) == cbuf.write(v) );
+		cbuf.wr_align();
+
+		REQUIRE( (cbuf.get_wr_rmaoff() % 0x40) == 0 );
+
+		cbuf.rd_advance(sizeof(std::uint64_t));
+		std::vector<uint8_t> vread = cbuf.read(sizeof(payload));
+		REQUIRE( sizeof(payload) == vread.size() );
+		cbuf.rd_align();
+
+		int result = 0;
+		vec_to_inttype_le(vread, result);
+		REQUIRE( result == payload );
+		REQUIRE( circbuf_len == cbuf.get_space() );
+	}
+
+	barrier(sn);
+}

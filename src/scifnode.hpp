@@ -17,7 +17,7 @@
 #include <vector>
 #include <memory>
 #include "scifepd.hpp"
-#include "rmawindow_factory.hpp"
+#include "rmawindow.hpp"
 
 class ScifNode
 {
@@ -45,8 +45,8 @@ public:
 		TODO: rething about boundary preservation. Shouldn't bytes be discarded?*/
 	std::vector<uint8_t> recvMsg(std::size_t size);
 
-	/* Returns an RMAWindow factory */
-	RMAWindow_factory create_RMAWindow_factory() { return RMAWindow_factory{epd.get_epd_t()}; }
+	/* Returns an RMAWindow */
+	RMAWindow create_RMAWindow(std::size_t len, int prot_flags) { return RMAWindow(epd.get_epd_t(), len, prot_flags); }
 
 	/* This method is a simple wrapper arround scif_vwriteto */
 	void writeMsg(off_t dest, off_t src, std::size_t len);
