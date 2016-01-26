@@ -23,6 +23,7 @@
 #include "../src/ctl_messages.hpp"
 #include "../src/virt_circbuf.hpp"
 #include "../src/circbuf.hpp"
+#include "../src/trans4node.hpp"
 
 
 #ifdef XEONPHI
@@ -282,49 +283,44 @@ TEST_CASE("Virt_circbuf tests", "[Virt_circbuf]")
 
 	SECTION("Wr and rd advance and space preservation")
 	{
-		REQUIRE( 0X40 == vcb.wr_advance(0x40) );
-		REQUIRE( (0x1000-0x40) == vcb.get_space() );
-		REQUIRE( 0X40 == vcb.rd_advance(0x40) );
+		REQUIRE( 0X40 == vcb.write(0x40) );
+		REQUIRE( (0x1000-0x80) == vcb.get_space() );
+		REQUIRE( 0X40 == vcb.read(0x40) );
 		REQUIRE( (0x1000) == vcb.get_space() );
 	}
 
 	SECTION("Writing to full buffer")
 	{
-		vcb.wr_advance(0x1000);
+		vcb.write(0x1000);
 		REQUIRE( 0 == vcb.get_space() );
-		REQUIRE( 0 == vcb.wr_advance(1) );
+		REQUIRE( 0 == vcb.write(1) );
 	}
 
 	SECTION("Reading from empty buffer")
 	{
 		REQUIRE( 0x1000 == vcb.get_space() );
-		REQUIRE( 0 == vcb.rd_advance(1) );
+		REQUIRE( 0 == vcb.read(1) );
 		REQUIRE( 0x1000 == vcb.get_space() );
 	}
 
 	SECTION("check if wr wraps up when reaching to the end")
 	{
 		off_t wr = vcb.get_wr_rmaoff();
-		vcb.wr_advance(0x1000);
+		vcb.write(0x1000);
 		REQUIRE( wr == vcb.get_wr_rmaoff() );
 	}
 
 	SECTION("wr align")
 	{
-		vcb.wr_advance(0x33);
-		REQUIRE_FALSE( 0 == (vcb.get_wr_rmaoff() % CACHELINE_SIZE) );
-		vcb.wr_align();
+		vcb.write(0x33);
 		REQUIRE( 0 == (vcb.get_wr_rmaoff() % CACHELINE_SIZE) );
 	}
 
 	SECTION("rd align")
 	{
-		vcb.wr_advance(0x63);
-		vcb.rd_advance(0x20);
-		REQUIRE( (0x1000-(0x63-0x20)) == vcb.get_space() );
-		//Note the position of wr_align()
-		vcb.wr_align();
-		vcb.rd_align();
+		REQUIRE( 0x63 == vcb.write(0x63) );
+		REQUIRE( 0x1000-2*CACHELINE_SIZE == vcb.get_space() );
+		REQUIRE( 0x20 == vcb.read(0x20) );
 		REQUIRE( (0x1000-CACHELINE_SIZE) == vcb.get_space() );
 	}
 }
@@ -345,23 +341,50 @@ TEST_CASE("circbuf tests", "[circbuf]")
 		int payload = 0xABCCBA;
 		inttype_to_vec_le(payload, v);
 
-		//calling advance to also test that advacing and read/writing together works as expected
-		cbuf.wr_advance(sizeof(std::uint64_t));
-		REQUIRE( sizeof(payload) == cbuf.write(v) );
-		cbuf.wr_align();
-
+		REQUIRE( sizeof(payload) == cbuf.write(v.cbegin(), v.size()) );
 		REQUIRE( (cbuf.get_wr_rmaoff() % 0x40) == 0 );
 
-		cbuf.rd_advance(sizeof(std::uint64_t));
-		std::vector<uint8_t> vread = cbuf.read(sizeof(payload));
-		REQUIRE( sizeof(payload) == vread.size() );
-		cbuf.rd_align();
-
-		int result = 0;
-		vec_to_inttype_le(vread, result);
-		REQUIRE( result == payload );
-		REQUIRE( circbuf_len == cbuf.get_space() );
+		cbuf.wr_update();
 	}
-
+	/** Test a case of a payload larger than the capacity of the buffer */
 	barrier(sn);
 }
+
+/**
+ * Trans4Node tests
+ */
+
+TEST_CASE("Trans4Node send/receive tests", "trans4node")
+{
+	Trans4Node tn(ADDR);
+
+	SECTION("Simple message transmission")
+	{
+		std::vector<uint8_t> first_msg{'h', 'e', 'l', 'l', 'o'};
+
+		REQUIRE( first_msg.size() == tn.send(first_msg) );
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+
+		std::vector<uint8_t> recv_msg = tn.recv(first_msg.size());
+		REQUIRE( recv_msg == first_msg );	
+	}
+
+	SECTION("Full buffer payload")
+	{
+		std::vector<uint8_t> buf_size_msg(RECV_BUF_SIZE - 8);
+		REQUIRE( buf_size_msg.size() == tn.send(buf_size_msg) );
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+
+		std::vector<uint8_t> recv_msg = tn.recv(buf_size_msg.size());
+		REQUIRE( buf_size_msg.size() == recv_msg.size() );	
+		std::this_thread::sleep_for(std::chrono::seconds(3));
+
+		REQUIRE( buf_size_msg.size() == tn.send(buf_size_msg) );
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+
+		recv_msg = tn.recv(buf_size_msg.size());
+		REQUIRE( buf_size_msg.size() == recv_msg.size() );	
+	}
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+} 

@@ -31,14 +31,32 @@ std::size_t Virt_circbuf::rd_advance(std::size_t rd_len)
 	return len;
 }
 
-void Virt_circbuf::wr_align() {
+void Virt_circbuf::wr_align()
+{
 	off_t new_wr = ROUND_TO_BOUNDARY(wr, CACHELINE_SIZE);
 	space -= new_wr-wr;
 	wr = new_wr % maxlen;
 }
 
-void Virt_circbuf::rd_align() {
+void Virt_circbuf::rd_align()
+{
 	off_t new_rd = ROUND_TO_BOUNDARY(rd, CACHELINE_SIZE);
 	space += new_rd-rd;
 	rd = new_rd % maxlen;
+}
+
+std::size_t Virt_circbuf::write(std::size_t len)
+{
+	wr_advance(ENTRY_HEAD);
+	std::size_t len2wr = wr_advance(len);
+	wr_align();
+	return len2wr;
+}
+
+std::size_t Virt_circbuf::read(std::size_t len) 
+{
+	rd_advance(ENTRY_HEAD);
+	std::size_t len2rd = rd_advance(len);
+	rd_align();
+	return len2rd;
 }

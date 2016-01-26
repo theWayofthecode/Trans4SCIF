@@ -32,6 +32,19 @@ public:
 
 	/* TODO: copy move constructors: Copy prohibited, move allowed (defined) */
 
-	std::size_t write(const std::vector<uint8_t>& in);
-	std::vector<uint8_t> read(std::size_t);
+    /* Unhide the inherited write/read methods */
+    using Virt_circbuf::write;
+    using Virt_circbuf::read;
+	
+	std::size_t write(std::vector<uint8_t>::const_iterator src, std::size_t len);
+
+	/**
+	 * Talk about the truncation possiblity
+	 * @param  dest [description]
+	 * @param  len  [description]
+	 * @return      Bytes read. Can be bigger than len, in which case the extra bytes are discarded.
+	 */
+	std::size_t read(std::vector<uint8_t>::iterator dest, std::size_t len);
+
+	void wr_update();
 };

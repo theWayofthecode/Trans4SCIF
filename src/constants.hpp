@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 
 #define INT_TO_STR_(i) #i
 #define INT_TO_STR(i) INT_TO_STR_(i)
@@ -22,3 +23,7 @@
 
 constexpr std::size_t PAGE_SIZE = 0x1000;
 constexpr std::size_t CACHELINE_SIZE = 0x40;
+
+constexpr std::size_t RECV_BUF_SIZE = 2*PAGE_SIZE;
+
+const std::vector<uint8_t> ZEROS_UINT64_T{0, 0, 0, 0, 0, 0, 0, 0};
