@@ -11,19 +11,18 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#pragma once
-#include <cstdint>
-#include <cstddef>
-#include <vector>
+#include "catch.hpp"
+#include "../src/ctl_messages.hpp"
 
 /**
- * The type is of known size for any platform in order to avoid corruption
- * in case the size of off_t and std::size_t is different for the platforms of the endpoints.
+ * ctl_messages module tests
  */
-struct RMA_id {
-	int64_t off;
-	uint64_t size;
-};
-
-std::vector<uint8_t> pack_RMA_id_msg(RMA_id osp);
-RMA_id unpack_RMA_id_msg(std::vector<uint8_t> msg);
+TEST_CASE("Test packing/unpacking of RMA_id ctl messages", "[ctl_messages]")
+{
+	std::vector<uint8_t> v = pack_RMA_id_msg({3,4});
+	REQUIRE(sizeof(RMA_id) == v.size());
+	RMA_id id = unpack_RMA_id_msg(v);
+	REQUIRE(id.off == 3);
+	REQUIRE(id.size == 4);
+	REQUIRE(sizeof(RMA_id) == v.size());
+}

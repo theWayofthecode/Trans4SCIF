@@ -1,5 +1,5 @@
 /*
-	© Copyright 2015 CERN
+	© Copyright 2015-2016 CERN
 	
 	This software is distributed under the terms of the 
 	GNU General Public Licence version 3 (GPL Version 3), 
@@ -46,6 +46,7 @@ ScifNode::ScifNode(uint16_t listening_port)
 
 std::size_t ScifNode::sendMsg(std::vector<uint8_t> &payload)
 {
+	std::cout << payload.size() << std::endl;
 	std::size_t bytes_sent = 0;
 	while (bytes_sent < payload.size()) {
 		int bytes = scif_send(epd.get_epd_t(), &payload[bytes_sent], payload.size() - bytes_sent, 0);

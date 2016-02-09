@@ -1,5 +1,5 @@
 /*
-	© Copyright 2015 CERN
+	© Copyright 2015-2016 CERN
 	
 	This software is distributed under the terms of the 
 	GNU General Public Licence version 3 (GPL Version 3), 

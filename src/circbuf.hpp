@@ -1,5 +1,5 @@
 /*
-	© Copyright 2015 CERN
+	© Copyright 2015-2016 CERN
 	
 	This software is distributed under the terms of the 
 	GNU General Public Licence version 3 (GPL Version 3), 
@@ -26,15 +26,14 @@ class Circbuf : public Virt_circbuf
 {
 private:
 	RMAWindow win;
+	uint8_t *base_mem;
 
 public:
-	Circbuf(RMAWindow w) : Virt_circbuf(w.get_off(), w.get_len()), win{std::move(w)} {}
+	Circbuf(RMAWindow w) : Virt_circbuf(w.get_off(), w.get_len()), 
+							win{std::move(w)},
+							base_mem{static_cast<uint8_t *>(win.get_mem())} {}
 
 	/* TODO: copy move constructors: Copy prohibited, move allowed (defined) */
-
-    /* Unhide the inherited write/read methods */
-    using Virt_circbuf::write;
-    using Virt_circbuf::read;
 	
 	std::size_t write(std::vector<uint8_t>::const_iterator src, std::size_t len);
 
@@ -46,5 +45,10 @@ public:
 	 */
 	std::size_t read(std::vector<uint8_t>::iterator dest, std::size_t len);
 
-	void wr_update();
+	void write_reset_chunk_head();
+
+	uint64_t read_reset_chunk_head();
+
+	uint64_t read_chunk_head();
+
 };

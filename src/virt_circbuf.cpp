@@ -1,5 +1,5 @@
 /*
-	© Copyright 2015 CERN
+	© Copyright 2015-2016 CERN
 	
 	This software is distributed under the terms of the 
 	GNU General Public Licence version 3 (GPL Version 3), 
@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include "virt_circbuf.hpp"
-
 
 std::size_t Virt_circbuf::wr_advance(std::size_t wr_len)
 {
@@ -43,20 +42,4 @@ void Virt_circbuf::rd_align()
 	off_t new_rd = ROUND_TO_BOUNDARY(rd, CACHELINE_SIZE);
 	space += new_rd-rd;
 	rd = new_rd % maxlen;
-}
-
-std::size_t Virt_circbuf::write(std::size_t len)
-{
-	wr_advance(ENTRY_HEAD);
-	std::size_t len2wr = wr_advance(len);
-	wr_align();
-	return len2wr;
-}
-
-std::size_t Virt_circbuf::read(std::size_t len) 
-{
-	rd_advance(ENTRY_HEAD);
-	std::size_t len2rd = rd_advance(len);
-	rd_align();
-	return len2rd;
 }

@@ -12,18 +12,16 @@
 */
 
 #pragma once
-#include <cstdint>
-#include <cstddef>
-#include <vector>
+
+#include "../src/scifnode.hpp"
+
+#ifdef XEONPHI
+#define ADDR 0, 5557
+#else
+#define ADDR 5557
+#endif
 
 /**
- * The type is of known size for any platform in order to avoid corruption
- * in case the size of off_t and std::size_t is different for the platforms of the endpoints.
+ * Helper functions
  */
-struct RMA_id {
-	int64_t off;
-	uint64_t size;
-};
-
-std::vector<uint8_t> pack_RMA_id_msg(RMA_id osp);
-RMA_id unpack_RMA_id_msg(std::vector<uint8_t> msg);
+void barrier(ScifNode &sn);

@@ -1,8 +1,9 @@
 
-BASE=../src
+SRC=../src
 
-SRCS=main_catch.cpp test_trans4_internals.cpp $(BASE)/ctl_messages.cpp $(BASE)/scifnode.cpp $(BASE)/virt_circbuf.cpp $(BASE)/circbuf.cpp $(BASE)/rmawindow.cpp $(BASE)/trans4node.cpp
-HEADERS=$(BASE)/ctl_messages.hpp $(BASE)/scifnode.hpp $(BASE)/virt_circbuf.hpp $(BASE)/circbuf.hpp $(BASE)/rmawindow.hpp $(BASE)/scifepd.hpp $(BASE)/constants.hpp $(BASE)/trans4node.hpp catch.hpp
+TESTS=common.cpp util_test.cpp ctl_messages_test.cpp circ_buffer_test.cpp
+SRCS=main.cpp $(TESTS) $(SRC)/ctl_messages.cpp $(SRC)/scifnode.cpp $(SRC)/virt_circbuf.cpp $(SRC)/circbuf.cpp $(SRC)/rmawindow.cpp $(SRC)/trans4node.cpp
+HEADERS=catch.hpp common.hpp $(SRC)/ctl_messages.hpp $(SRC)/scifnode.hpp $(SRC)/virt_circbuf.hpp $(SRC)/circbuf.hpp $(SRC)/rmawindow.hpp $(SRC)/scifepd.hpp $(SRC)/constants.hpp $(SRC)/trans4node.hpp catch.hpp
 CFLAGS=-std=c++11
 
 all: mainmmic main
