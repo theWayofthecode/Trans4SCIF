@@ -1,7 +1,7 @@
 
 SRC=../src
 
-TESTS=common.cpp util_test.cpp ctl_messages_test.cpp circ_buffer_test.cpp
+TESTS=common.cpp util_test.cpp ctl_messages_test.cpp scif_node_test.cpp 
 SRCS=main.cpp $(TESTS) $(SRC)/ctl_messages.cpp $(SRC)/scifnode.cpp $(SRC)/virt_circbuf.cpp $(SRC)/circbuf.cpp $(SRC)/rmawindow.cpp $(SRC)/trans4node.cpp
 HEADERS=catch.hpp common.hpp $(SRC)/ctl_messages.hpp $(SRC)/scifnode.hpp $(SRC)/virt_circbuf.hpp $(SRC)/circbuf.hpp $(SRC)/rmawindow.hpp $(SRC)/scifepd.hpp $(SRC)/constants.hpp $(SRC)/trans4node.hpp catch.hpp
 CFLAGS=-std=c++11

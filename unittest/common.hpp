@@ -16,9 +16,9 @@
 #include "../src/scifnode.hpp"
 
 #ifdef XEONPHI
-#define ADDR 0, 5557
+#define ADDR 0, 5555
 #else
-#define ADDR 5557
+#define ADDR 5555
 #endif
 
 /**

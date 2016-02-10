@@ -44,32 +44,24 @@ ScifNode::ScifNode(uint16_t listening_port)
 	epd.set_epd_t(acc_epd_t);
 }
 
+/** TODO: What if scif_send sends less than payload.size()? */
 std::size_t ScifNode::sendMsg(std::vector<uint8_t> &payload)
 {
-	std::cout << payload.size() << std::endl;
-	std::size_t bytes_sent = 0;
-	while (bytes_sent < payload.size()) {
-		int bytes = scif_send(epd.get_epd_t(), &payload[bytes_sent], payload.size() - bytes_sent, 0);
-		/* TODO: Maybe in case of error earlier return? */
-		if (bytes == -1)
-			throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-		bytes_sent += bytes;
-	}
-	return bytes_sent;
+	int bytes = scif_send(epd.get_epd_t(), payload.data(), payload.size(), SCIF_SEND_BLOCK);
+	/* TODO: Maybe in case of error earlier return? */
+	if (bytes == -1)
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+	
+	return bytes;
 }
 
 std::vector<uint8_t> ScifNode::recvMsg(std::size_t size)
 {
 	std::vector<uint8_t> payload(size);
-	int index = 0;
-	while (size) {
-		int bytes = scif_recv(epd.get_epd_t(), &payload[index], size, 0);
-		/* TODO: Maybe in case of error earlier return? */
-		if (bytes == -1)
-			throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-		size -= bytes;
-		index += bytes;
-	}
+	int bytes = scif_recv(epd.get_epd_t(), payload.data(), size, SCIF_RECV_BLOCK);
+	/* TODO: Maybe in case of error earlier return? */
+	if (bytes == -1)
+		throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 	return payload;
 }
 
