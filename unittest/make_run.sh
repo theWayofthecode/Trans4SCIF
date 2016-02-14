@@ -8,7 +8,7 @@ if [ $? -ne 0 ]; then
 fi
 
 ./main > host.output &
-micnativeloadex mainmmic > xeon_phi.output
+micnativeloadex mainmmic  > xeon_phi.output
 wait $!
 echo "==================HOST=============="
 cat host.output

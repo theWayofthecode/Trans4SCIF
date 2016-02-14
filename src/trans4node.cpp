@@ -1,9 +1,9 @@
 /*
-	© Copyright 2015-2016 CERN
+	C Copyright 2015-2016 CERN
 	
 	This software is distributed under the terms of the 
 	GNU General Public Licence version 3 (GPL Version 3), 
-	copied verbatim in the file “LICENSE”.
+	copied verbatim in the file "LICENSE".
 	In applying this licence, CERN does not waive 
 	the privileges and immunities granted to it by virtue of its status 
 	as an Intergovernmental Organization or submit itself to any jurisdiction.
@@ -41,7 +41,7 @@ void Trans4Node::init()
 	RMA_id my_id{recvbuf.get_wr_rmaoff(), recvbuf.get_space()};
 	std::vector<uint8_t> msg_send(pack_RMA_id_msg(my_id));
 	sn.sendMsg(msg_send);
-
+//	std::cout << "offset: " << recvbuf.get_wr_rmaoff() << std::endl;
 	/* Get the peer node's recvbuf details */
 	std::vector<uint8_t> msg_recv = sn.recvMsg(sizeof(RMA_id));
 	RMA_id peer_id(unpack_RMA_id_msg(msg_recv));
@@ -97,6 +97,7 @@ std::size_t Trans4Node::send(std::vector<uint8_t>::const_iterator msg_it, std::s
 	}
 
 	/** write (remote) chunk head */
+//	std::cout << "signal: " << sync_off << " " << total_size_send << std::endl;
 	sn.signalPeer(sync_off, total_size_send);
 
 	return total_size_send;
@@ -116,12 +117,12 @@ std::size_t Trans4Node::recv(std::vector<uint8_t>::iterator msg_it, std::size_t 
 	/** Currently the chunk header contains only the size of the chunk */
 	std::size_t chunk_size = recvbuf.read_reset_chunk_head();
 	
-	/** How to encapsulate this parts? */
 	auto read_data = [this, &msg_size, &msg_it, &chunk_size]()->std::size_t {	
 		std::size_t msg_size_read = recvbuf.read(msg_it, std::min(chunk_size, msg_size));
 		chunk_size -= msg_size_read;
 		msg_size -= msg_size_read;
 		msg_it += msg_size_read;
+		return msg_size_read;
 	};
 	std::size_t total_msg_size_recv = read_data();
 
@@ -149,6 +150,7 @@ std::size_t Trans4Node::recv(std::vector<uint8_t>::iterator msg_it, std::size_t 
 void Trans4Node::update_recvbuf_space()
 {
 	std::size_t chunk_size = 0;
+//	std::cout << "chunk_head: " << recvbuf.read_chunk_head() << std::endl;
 	while (recvbuf.get_space() && (chunk_size = recvbuf.read_chunk_head())) {
 		chunk_size -= recvbuf.wr_advance(chunk_size);
 		if (recvbuf.get_space() && chunk_size) {
