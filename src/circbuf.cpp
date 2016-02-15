@@ -41,7 +41,7 @@ std::size_t Circbuf::read(std::vector<uint8_t>::iterator dest, std::size_t len)
 	return len2rd;
 }
 
-void Circbuf::write_reset_chunk_head()
+void Circbuf::wr_reset_chunk_head()
 {
 	/** Reset the chunk head. [The cast is SCIF dependant] */
 	uint64_t *head = reinterpret_cast<uint64_t *>(base_mem+get_wr());
@@ -49,7 +49,7 @@ void Circbuf::write_reset_chunk_head()
 	wr_advance(CHUNK_HEAD_SIZE);
 }
 
-uint64_t Circbuf::read_reset_chunk_head()
+uint64_t Circbuf::rd_read_reset_chunk_head()
 {
 	/** Read and reset the chunk head. [The cast is SCIF dependant] */
 	uint64_t *head = reinterpret_cast<uint64_t *>(base_mem+get_rd());
@@ -60,7 +60,7 @@ uint64_t Circbuf::read_reset_chunk_head()
 }
 
 /** TODO: wr or rd? */
-uint64_t Circbuf::read_chunk_head()
+uint64_t Circbuf::wr_read_chunk_head()
 {
 	uint64_t ret = *(reinterpret_cast<uint64_t *>(base_mem+get_wr()));
 	wr_advance(CHUNK_HEAD_SIZE);

@@ -45,10 +45,10 @@ public:
 	 */
 	std::size_t read(std::vector<uint8_t>::iterator dest, std::size_t len);
 
-	void write_reset_chunk_head();
+	void wr_reset_chunk_head();
 
-	uint64_t read_reset_chunk_head();
+	uint64_t rd_read_reset_chunk_head();
 
-	uint64_t read_chunk_head();
+	uint64_t wr_read_chunk_head();
 
 };

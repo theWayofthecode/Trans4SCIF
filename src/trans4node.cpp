@@ -41,7 +41,6 @@ void Trans4Node::init()
 	RMA_id my_id{recvbuf.get_wr_rmaoff(), recvbuf.get_space()};
 	std::vector<uint8_t> msg_send(pack_RMA_id_msg(my_id));
 	sn.sendMsg(msg_send);
-//	std::cout << "offset: " << recvbuf.get_wr_rmaoff() << std::endl;
 	/* Get the peer node's recvbuf details */
 	std::vector<uint8_t> msg_recv = sn.recvMsg(sizeof(RMA_id));
 	RMA_id peer_id(unpack_RMA_id_msg(msg_recv));
@@ -64,7 +63,7 @@ std::size_t Trans4Node::send(std::vector<uint8_t>::const_iterator msg_it, std::s
 	off_t src_off = sendbuf->get_wr_rmaoff();
 
 	/** Reset the chunk head field to 0. It should be writen by scif_signal*/
-	sendbuf->write_reset_chunk_head();
+	sendbuf->wr_reset_chunk_head();
 	rem_recvbuf->wr_advance(CHUNK_HEAD_SIZE);
 
 	/** Write the data */
@@ -97,7 +96,6 @@ std::size_t Trans4Node::send(std::vector<uint8_t>::const_iterator msg_it, std::s
 	}
 
 	/** write (remote) chunk head */
-//	std::cout << "signal: " << sync_off << " " << total_size_send << std::endl;
 	sn.signalPeer(sync_off, total_size_send);
 
 	return total_size_send;
@@ -115,7 +113,7 @@ std::size_t Trans4Node::recv(std::vector<uint8_t>::iterator msg_it, std::size_t 
 	}
 
 	/** Currently the chunk header contains only the size of the chunk */
-	std::size_t chunk_size = recvbuf.read_reset_chunk_head();
+	std::size_t chunk_size = recvbuf.rd_read_reset_chunk_head();
 	
 	auto read_data = [this, &msg_size, &msg_it, &chunk_size]()->std::size_t {	
 		std::size_t msg_size_read = recvbuf.read(msg_it, std::min(chunk_size, msg_size));
@@ -150,8 +148,7 @@ std::size_t Trans4Node::recv(std::vector<uint8_t>::iterator msg_it, std::size_t 
 void Trans4Node::update_recvbuf_space()
 {
 	std::size_t chunk_size = 0;
-//	std::cout << "chunk_head: " << recvbuf.read_chunk_head() << std::endl;
-	while (recvbuf.get_space() && (chunk_size = recvbuf.read_chunk_head())) {
+	while (recvbuf.get_space() && (chunk_size = recvbuf.wr_read_chunk_head())) {
 		chunk_size -= recvbuf.wr_advance(chunk_size);
 		if (recvbuf.get_space() && chunk_size) {
 			recvbuf.wr_advance(chunk_size);
