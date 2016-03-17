@@ -1,8 +1,8 @@
 /*
-	C Copyright 2015-2016 CERN
+	Copyright (c) 2015-2016 CERN
 	
 	This software is distributed under the terms of the 
-	GNU General Public Licence version 3 (GPL Version 3), 
+	GNU Lesser General Public Licence version 3 (LGPLv3),
 	copied verbatim in the file "LICENSE".
 	In applying this licence, CERN does not waive 
 	the privileges and immunities granted to it by virtue of its status 
@@ -59,7 +59,6 @@ uint64_t Circbuf::rd_read_reset_chunk_head()
 	return ret;
 }
 
-/** TODO: wr or rd? */
 uint64_t Circbuf::wr_read_chunk_head()
 {
 	uint64_t ret = *(reinterpret_cast<uint64_t *>(base_mem+get_wr()));

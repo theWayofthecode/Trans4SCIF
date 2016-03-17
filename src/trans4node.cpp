@@ -1,8 +1,8 @@
 /*
-	C Copyright 2015-2016 CERN
+	Copyright (c) 2015-2016 CERN
 	
 	This software is distributed under the terms of the 
-	GNU General Public Licence version 3 (GPL Version 3), 
+	GNU Lesser General Public Licence version 3 (LGPLv3),
 	copied verbatim in the file "LICENSE".
 	In applying this licence, CERN does not waive 
 	the privileges and immunities granted to it by virtue of its status 
@@ -143,6 +143,41 @@ std::size_t Trans4Node::recv(std::vector<uint8_t>::iterator msg_it, std::size_t 
 	sn.sendMsg(recv_notif_msg);
 
 	return total_msg_size_recv;
+}
+
+/**
+ * When the buffer is empty it should block?
+ */
+std::vector<uint8_t> Trans4Node::recv()
+{
+	update_recvbuf_space();
+	if (recvbuf.is_empty()) {
+		std::vector<uint8_t> empty_v;
+		return empty_v;
+	}
+
+	/** Currently the chunk header contains only the size of the chunk */
+	std::size_t chunk_size = recvbuf.rd_read_reset_chunk_head();
+	std::vector<uint8_t> msg(chunk_size);
+	auto msg_it = msg.begin();
+	auto msg_size_read = recvbuf.read(msg_it, chunk_size);
+	msg_it += msg_size_read;
+	chunk_size -= msg_size_read;
+	/** wrap-around case */
+	if (chunk_size) {
+		chunk_size -= recvbuf.read(msg_it, chunk_size);
+	}
+	assert(!chunk_size);
+
+	recvbuf.rd_align();
+
+	/** Notify sender */
+	std::vector<uint8_t> recv_notif_msg;
+	inttype_to_vec_le(msg.size(), recv_notif_msg);
+	sn.sendMsg(recv_notif_msg);
+
+	/** Assuming copy elision */
+	return msg;
 }
 
 void Trans4Node::update_recvbuf_space()
