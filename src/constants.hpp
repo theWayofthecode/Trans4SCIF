@@ -11,7 +11,8 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#pragma once
+#ifndef _CONSTANTS_CONSTANTS_HPP_
+#define _CONSTANTS_CONSTANTS_HPP_
 
 #include <cstddef>
 #include <string>
@@ -21,11 +22,14 @@
 #define INT_TO_STR(i) INT_TO_STR_(i)
 #define __FILE__LINE__ (__FILE__ + std::string(":") + INT_TO_STR(__LINE__))
 
+namespace t4s {
+
 constexpr std::size_t PAGE_SIZE = 0x1000;
 constexpr std::size_t CACHELINE_SIZE = 0x40;
 constexpr std::size_t CHUNK_HEAD_SIZE = sizeof(uint64_t);
 
 constexpr std::size_t RECV_BUF_SIZE = 2 * PAGE_SIZE;
 
-/* Make an std::array */
-//const std::array<uint8_t, 8> ZEROS_UINT64_T{0, 0, 0, 0, 0, 0, 0, 0};
+}
+#endif
+

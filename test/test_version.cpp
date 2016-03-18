@@ -14,8 +14,7 @@
 #include "catch.hpp"
 #include "trans4scif.hpp"
 
-TEST_CASE("Test version")
-{
-    REQUIRE( t4s_version() == "0.1");
+TEST_CASE("Test version") {
+  REQUIRE(t4s::trans4scif_version() == "0.1");
 }
 

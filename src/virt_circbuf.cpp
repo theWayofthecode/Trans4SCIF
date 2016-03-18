@@ -14,28 +14,32 @@
 #include <algorithm>
 #include "virt_circbuf.hpp"
 
-std::size_t Virt_circbuf::wr_advance(std::size_t wr_len) {
-    std::size_t len = std::min(std::min(maxlen - wr, space), wr_len);
-    wr = (wr + len) % maxlen;
-    space -= len;
-    return len;
+namespace t4s {
+
+std::size_t VirtCircbuf::WrAdvance(std::size_t wr_len) {
+  std::size_t len = std::min(std::min(maxlen_ - wr_, space_), wr_len);
+  wr_ = (wr_ + len) % maxlen_;
+  space_ -= len;
+  return len;
 }
 
-std::size_t Virt_circbuf::rd_advance(std::size_t rd_len) {
-    std::size_t len = std::min(std::min(maxlen - rd, maxlen - space), rd_len);
-    rd = (rd + len) % maxlen;
-    space += len;
-    return len;
+std::size_t VirtCircbuf::RdAdvance(std::size_t rd_len) {
+  std::size_t len = std::min(std::min(maxlen_ - rd_, maxlen_ - space_), rd_len);
+  rd_ = (rd_ + len) % maxlen_;
+  space_ += len;
+  return len;
 }
 
-void Virt_circbuf::wr_align() {
-    off_t new_wr = ROUND_TO_BOUNDARY(wr, CACHELINE_SIZE);
-    space -= new_wr - wr;
-    wr = new_wr % maxlen;
+void VirtCircbuf::WrAlign() {
+  off_t new_wr = ROUND_TO_BOUNDARY(wr_, CACHELINE_SIZE);
+  space_ -= new_wr - wr_;
+  wr_ = new_wr % maxlen_;
 }
 
-void Virt_circbuf::rd_align() {
-    off_t new_rd = ROUND_TO_BOUNDARY(rd, CACHELINE_SIZE);
-    space += new_rd - rd;
-    rd = new_rd % maxlen;
+void VirtCircbuf::RdAlign() {
+  off_t new_rd = ROUND_TO_BOUNDARY(rd_, CACHELINE_SIZE);
+  space_ += new_rd - rd_;
+  rd_ = new_rd % maxlen_;
+}
+
 }

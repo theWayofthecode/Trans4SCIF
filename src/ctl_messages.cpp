@@ -14,20 +14,22 @@
 #include "util.hpp"
 #include "ctl_messages.hpp"
 
-/* TODO: put a namespace here */
+namespace t4s {
 
-std::vector<uint8_t> pack_RMA_id_msg(RMA_id id) {
-    std::vector<uint8_t> msg;
-    inttype_to_vec_le(id.off, msg);
-    inttype_to_vec_le(id.size, msg);
-    return msg;
+std::vector<uint8_t> PackRMAIdMsg(RMA_id id) {
+  std::vector<uint8_t> msg;
+  inttype_to_vec_le(id.off, msg);
+  inttype_to_vec_le(id.size, msg);
+  return msg;
 }
 
-RMA_id unpack_RMA_id_msg(std::vector<uint8_t> msg) {
-    /* assert msg.size() >= sizeof(off_size_pair) */
-    RMA_id id;
-    vec_to_inttype_le(msg, id.off);
-    msg.erase(msg.begin(), msg.begin() + sizeof(id.off));
-    vec_to_inttype_le(msg, id.size);
-    return id;
+RMA_id UnpackRMAIdMsg(std::vector<uint8_t> msg) {
+  /* assert msg.size() >= sizeof(off_size_pair) */
+  RMA_id id;
+  vec_to_inttype_le(msg, id.off);
+  msg.erase(msg.begin(), msg.begin() + sizeof(id.off));
+  vec_to_inttype_le(msg, id.size);
+  return id;
+}
+
 }

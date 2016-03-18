@@ -18,51 +18,55 @@
 
 #include "rmawindow.hpp"
 
+namespace t4s {
+
 RMAWindow::RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags) {
-    this->epd = epd;
-    this->len = ROUND_TO_BOUNDARY(len, PAGE_SIZE);
-    int err = posix_memalign(&mem, PAGE_SIZE, this->len);
-    if (err) {
-        throw std::system_error(err, std::system_category(), __FILE__LINE__);
-    }
-    bzero(mem, this->len);
-    off = scif_register(epd, mem, this->len, 0, prot_flags, 0);
-    if (off == SCIF_REGISTER_FAILED) {
-        throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-    }
+  this->epd_ = epd;
+  this->len_ = ROUND_TO_BOUNDARY(len, PAGE_SIZE);
+  int err = posix_memalign(&mem_, PAGE_SIZE, this->len_);
+  if (err) {
+    throw std::system_error(err, std::system_category(), __FILE__LINE__);
+  }
+  bzero(mem_, this->len_);
+  off_ = scif_register(epd, mem_, this->len_, 0, prot_flags, 0);
+  if (off_ == SCIF_REGISTER_FAILED) {
+    throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+  }
 }
 
 RMAWindow::RMAWindow(RMAWindow &&w)
-        : epd{w.epd},
-          mem{w.mem},
-          off{w.off},
-          len{w.len} {
-    w.epd = -1;
-    w.mem = nullptr;
-    w.off = 0;
-    w.len = 0;
+    : epd_{w.epd_},
+      mem_{w.mem_},
+      off_{w.off_},
+      len_{w.len_} {
+  w.epd_ = -1;
+  w.mem_ = nullptr;
+  w.off_ = 0;
+  w.len_ = 0;
 }
 
 RMAWindow &RMAWindow::operator=(RMAWindow &&w) {
-    epd = w.epd;
-    mem = w.mem;
-    off = w.off;
-    len = w.len;
-    w.epd = -1;
-    w.mem = nullptr;
-    w.off = 0;
-    w.len = 0;
-    return *this;
+  epd_ = w.epd_;
+  mem_ = w.mem_;
+  off_ = w.off_;
+  len_ = w.len_;
+  w.epd_ = -1;
+  w.mem_ = nullptr;
+  w.off_ = 0;
+  w.len_ = 0;
+  return *this;
 }
 
 RMAWindow::~RMAWindow() {
-    if (mem) {
-        free(mem);
+  if (mem_) {
+    free(mem_);
+  }
+  if (epd_ != -1) {
+    if (scif_unregister(epd_, off_, len_) == -1) {
+      std::system_error e(errno, std::system_category(), __FILE__LINE__);
+      std::cerr << "Warning: scif_unregister: " << e.what() << __FILE__LINE__ << std::endl;
     }
-    if (epd != -1) {
-        if (scif_unregister(epd, off, len) == -1) {
-            std::system_error e(errno, std::system_category(), __FILE__LINE__);
-            std::cerr << "Warning: scif_unregister: " << e.what() << __FILE__LINE__ << std::endl;
-        }
-    }
+  }
+}
+
 }

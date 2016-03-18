@@ -11,29 +11,35 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#pragma once
+#ifndef _UTIL_UTIL_HPP_
+#define _UTIL_UTIL_HPP_
 
 #include <cstdint>
 #include <algorithm>
 #include <vector>
 
-/* args must be unsigned !!! */
+namespace t4s {
+
+// args must be unsigned !!!
 #define ROUND_TO_BOUNDARY(s, b) ((s+b-1) & (-b))
 
 template<typename inttype>
 void inttype_to_vec_le(inttype in, std::vector<uint8_t> &out) {
-    for (int i = 0; i < sizeof(in); i++, in >>= 8) {
-        out.push_back(in & 0xff);
-    }
+  for (int i = 0; i < sizeof(in); i++, in >>= 8) {
+    out.push_back(in & 0xff);
+  }
 }
 
 template<typename inttype>
 void vec_to_inttype_le(const std::vector<uint8_t> &in, inttype &out) {
-    out = 0;
-    for (auto it = in.cbegin() + std::min(sizeof(out), in.size()) - 1;
-         it >= in.cbegin();
-         --it) {
-        out = (out << 8) | *it;
-    }
+  out = 0;
+  for (auto it = in.cbegin() + std::min(sizeof(out), in.size()) - 1;
+       it >= in.cbegin();
+       --it) {
+    out = (out << 8) | *it;
+  }
 }
+
+}
+#endif
 

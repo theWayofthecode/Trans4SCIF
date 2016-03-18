@@ -11,7 +11,8 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#pragma once
+#ifndef _SOCKET_SOCKET_HPP_
+#define _SOCKET_SOCKET_HPP_
 
 #include <vector>
 #include <cstdint>
@@ -19,36 +20,41 @@
 #include "../src/virt_circbuf.hpp"
 #include "../src/circbuf.hpp"
 
-std::string t4s_version();
+namespace t4s {
 
-class t4s_socket_t {
-private:
-    ScifNode sn;
-    Circbuf recvbuf;
-    std::unique_ptr<Circbuf> sendbuf;
-    /**
-     * Remote (peer) receive buffer. It is virtual in the sense
-     * that it is not backed up by memory but used only for the logistics.
-     */
-    std::unique_ptr<Virt_circbuf> rem_recvbuf;
+std::string trans4scif_version();
 
-    void init();
+class Socket {
+ private:
+  ScifNode sn_;
+  Circbuf recvbuf_;
+  std::unique_ptr<Circbuf> sendbuf_;
+  /**
+   * Remote (peer) receive buffer. It is virtual in the sense
+   * that it is not backed up by memory but used only for the logistics.
+   */
+  std::unique_ptr<VirtCircbuf> rem_recvbuf_;
 
-    void get_rem_recvbuf_notifs();
+  void Init();
 
-    void update_recvbuf_space();
+  void GetRemRecvbufNotifs();
 
-public:
+  void UpdateRecvbufSpace();
 
-    /* Construct a connecting node */
-    t4s_socket_t(uint16_t target_node_id, uint16_t target_port);
+ public:
 
-    /* Construct a listening node */
-    t4s_socket_t(uint16_t listening_port);
+  /* Construct a connecting node */
+  Socket(uint16_t target_node_id, uint16_t target_port);
 
-    std::size_t send(std::vector<uint8_t>::const_iterator msg_it, std::size_t len);
+  /* Construct a listening node */
+  Socket(uint16_t listening_port);
 
-    std::size_t recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_size);
+  std::size_t Send(std::vector<uint8_t>::const_iterator msg_it, std::size_t len);
 
-    std::vector<uint8_t> recv();
+  std::size_t Recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_size);
+
+  std::vector<uint8_t> Recv();
 };
+
+}
+#endif

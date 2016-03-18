@@ -15,12 +15,11 @@
 #include "trans4scif.hpp"
 #include "ctl_messages.hpp"
 
-TEST_CASE("Test packing/unpacking of RMA_id ctl messages", "[ctl_messages]")
-{
-    std::vector<uint8_t> v = pack_RMA_id_msg({3,4});
-    REQUIRE(sizeof(RMA_id) == v.size());
-    RMA_id id = unpack_RMA_id_msg(v);
-    REQUIRE(id.off == 3);
-    REQUIRE(id.size == 4);
-    REQUIRE(sizeof(RMA_id) == v.size());
+TEST_CASE("Test packing/unpacking of RMA_id ctl messages", "[ctl_messages]") {
+  std::vector<uint8_t> v = t4s::PackRMAIdMsg({3, 4});
+  REQUIRE(sizeof(t4s::RMA_id) == v.size());
+  t4s::RMA_id id = t4s::UnpackRMAIdMsg(v);
+  REQUIRE(id.off == 3);
+  REQUIRE(id.size == 4);
+  REQUIRE(sizeof(t4s::RMA_id) == v.size());
 }
