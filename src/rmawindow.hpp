@@ -12,37 +12,41 @@
 */
 
 #pragma once
+
 #include <cstddef>
 #include <scif.h>
 #include "constants.hpp"
 #include "util.hpp"
 
-class RMAWindow
-{
+class RMAWindow {
 private:
-	scif_epd_t epd;
-	void * mem;
-	off_t off;
-	std::size_t len;
+    scif_epd_t epd;
+    void *mem;
+    off_t off;
+    std::size_t len;
 
 public:
-	/* Copying is not allowed. */
-	RMAWindow(const RMAWindow& w) = delete;
-	RMAWindow& operator=(const RMAWindow& w) = delete;
+    /* Copying is not allowed. */
+    RMAWindow(const RMAWindow &w) = delete;
 
-	RMAWindow(RMAWindow&& w);
-	RMAWindow& operator=(RMAWindow&& w);
+    RMAWindow &operator=(const RMAWindow &w) = delete;
 
-	/** 
-	 * Open a window in the registered memory space of the process. 
-	 * len will be rounded up to PAGE_SIZE boundary if necessary.
-	 * The prot_flags is formed by OR'ing SCIF_PROT_READ and SCIF_PROT_WRITE 
-	 */
-	RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags);
+    RMAWindow(RMAWindow &&w);
 
-	~RMAWindow();
+    RMAWindow &operator=(RMAWindow &&w);
 
-	void * get_mem() { return mem; }
-	off_t get_off() { return off; }
-	std::size_t get_len() { return len; }
+    /**
+     * Open a window in the registered memory space of the process.
+     * len will be rounded up to PAGE_SIZE boundary if necessary.
+     * The prot_flags is formed by OR'ing SCIF_PROT_READ and SCIF_PROT_WRITE
+     */
+    RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags);
+
+    ~RMAWindow();
+
+    void *get_mem() { return mem; }
+
+    off_t get_off() { return off; }
+
+    std::size_t get_len() { return len; }
 };

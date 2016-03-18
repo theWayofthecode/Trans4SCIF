@@ -12,50 +12,49 @@
 */
 
 #pragma once
+
 #include <scif.h>
 #include <system_error>
 #include <iostream>
 #include "constants.hpp"
 
-class ScifEpd
-{
+class ScifEpd {
 private:
-	scif_epd_t epd;
+    scif_epd_t epd;
 public:
-	ScifEpd()
-	{
-		if ((epd = scif_open()) == SCIF_OPEN_FAILED) {
-			throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-		}
-	}
+    ScifEpd() {
+        if ((epd = scif_open()) == SCIF_OPEN_FAILED) {
+            throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+        }
+    }
 
-	/* Copy and move is not supported */
-	ScifEpd(const ScifEpd& e) = delete;
-	ScifEpd& operator=(const ScifEpd& e) = delete;
-	ScifEpd(ScifEpd&& e) = delete;
-	ScifEpd& operator=(ScifEpd&& e) = delete;
+    /* Copy and move is not supported */
+    ScifEpd(const ScifEpd &e) = delete;
 
-	~ScifEpd()
-	{
-		if (scif_close(epd) == -1) {
-			std::system_error e(errno, std::system_category(), __FILE__LINE__);
-			std::cerr << "Warning: scif_close: " << e.what() << std::endl;
-		}
-	}
+    ScifEpd &operator=(const ScifEpd &e) = delete;
 
-	/* TODO: Maybe implement move assignment and constructor */
+    ScifEpd(ScifEpd &&e) = delete;
 
-	void set_epd_t(scif_epd_t e)
-	{
-		if (scif_close(epd) == -1) {
-			throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-		}
-		epd = e;
-	}
+    ScifEpd &operator=(ScifEpd &&e) = delete;
 
-	scif_epd_t get_epd_t() const
-	{
-		return epd;
-	}
+    ~ScifEpd() {
+        if (scif_close(epd) == -1) {
+            std::system_error e(errno, std::system_category(), __FILE__LINE__);
+            std::cerr << "Warning: scif_close: " << e.what() << std::endl;
+        }
+    }
+
+    /* TODO: Maybe implement move assignment and constructor */
+
+    void set_epd_t(scif_epd_t e) {
+        if (scif_close(epd) == -1) {
+            throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+        }
+        epd = e;
+    }
+
+    scif_epd_t get_epd_t() const {
+        return epd;
+    }
 
 };

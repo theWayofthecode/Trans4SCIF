@@ -22,33 +22,32 @@
 /**
  * TODO: copy prohibited. Think about move 
  */
-class Circbuf : public Virt_circbuf
-{
+class Circbuf : public Virt_circbuf {
 private:
-	RMAWindow win;
-	uint8_t *base_mem;
+    RMAWindow win;
+    uint8_t *base_mem;
 
 public:
-	Circbuf(RMAWindow w) : Virt_circbuf(w.get_off(), w.get_len()), 
-							win{std::move(w)},
-							base_mem{static_cast<uint8_t *>(win.get_mem())} {}
+    Circbuf(RMAWindow w) : Virt_circbuf(w.get_off(), w.get_len()),
+                           win{std::move(w)},
+                           base_mem{static_cast<uint8_t *>(win.get_mem())} { }
 
-	/* TODO: copy move constructors: Copy prohibited, move allowed (defined) */
-	
-	std::size_t write(std::vector<uint8_t>::const_iterator src, std::size_t len);
+    /* TODO: copy move constructors: Copy prohibited, move allowed (defined) */
 
-	/**
-	 * Talk about the truncation possiblity
-	 * @param  dest [description]
-	 * @param  len  [description]
-	 * @return      Bytes read. Can be bigger than len, in which case the extra bytes are discarded.
-	 */
-	std::size_t read(std::vector<uint8_t>::iterator dest, std::size_t len);
+    std::size_t write(std::vector<uint8_t>::const_iterator src, std::size_t len);
 
-	void wr_reset_chunk_head();
+    /**
+     * Talk about the truncation possiblity
+     * @param  dest [description]
+     * @param  len  [description]
+     * @return      Bytes read. Can be bigger than len, in which case the extra bytes are discarded.
+     */
+    std::size_t read(std::vector<uint8_t>::iterator dest, std::size_t len);
 
-	uint64_t rd_read_reset_chunk_head();
+    void wr_reset_chunk_head();
 
-	uint64_t wr_read_chunk_head();
+    uint64_t rd_read_reset_chunk_head();
+
+    uint64_t wr_read_chunk_head();
 
 };

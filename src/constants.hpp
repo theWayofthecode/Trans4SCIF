@@ -25,7 +25,7 @@ constexpr std::size_t PAGE_SIZE = 0x1000;
 constexpr std::size_t CACHELINE_SIZE = 0x40;
 constexpr std::size_t CHUNK_HEAD_SIZE = sizeof(uint64_t);
 
-constexpr std::size_t RECV_BUF_SIZE = 2*PAGE_SIZE;
+constexpr std::size_t RECV_BUF_SIZE = 2 * PAGE_SIZE;
 
 /* Make an std::array */
 //const std::array<uint8_t, 8> ZEROS_UINT64_T{0, 0, 0, 0, 0, 0, 0, 0};

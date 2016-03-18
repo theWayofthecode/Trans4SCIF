@@ -18,38 +18,41 @@
 #include "constants.hpp"
 #include "util.hpp"
 
-class Virt_circbuf
-{
+class Virt_circbuf {
 private:
-	off_t base_rmaoff;
-	std::size_t maxlen;
+    off_t base_rmaoff;
+    std::size_t maxlen;
 
-	std::size_t space;
-	off_t wr;
-	off_t rd;
+    std::size_t space;
+    off_t wr;
+    off_t rd;
 
 protected:
-	off_t get_wr() { return wr; }
-	off_t get_rd() { return rd; }
+    off_t get_wr() { return wr; }
+
+    off_t get_rd() { return rd; }
 
 public:
-	Virt_circbuf(off_t rmaoff, std::size_t len) :
-		base_rmaoff{rmaoff},
-		maxlen{len},
-		space{len},
-		wr{0},
-		rd{0} {}
+    Virt_circbuf(off_t rmaoff, std::size_t len) :
+            base_rmaoff{rmaoff},
+            maxlen{len},
+            space{len},
+            wr{0},
+            rd{0} { }
 
-	/* TODO: copy move constructors: Copy prohibited, move allowed (defined) */
+    /* TODO: copy move constructors: Copy prohibited, move allowed (defined) */
 
-	off_t get_wr_rmaoff() { return base_rmaoff+wr; }
+    off_t get_wr_rmaoff() { return base_rmaoff + wr; }
 
-	std::size_t get_space() { return space; }
-	bool is_empty() { return space == maxlen; }
+    std::size_t get_space() { return space; }
 
-	std::size_t wr_advance(std::size_t len);
-	std::size_t rd_advance(std::size_t len);
+    bool is_empty() { return space == maxlen; }
 
-	void wr_align();
-	void rd_align();
+    std::size_t wr_advance(std::size_t len);
+
+    std::size_t rd_advance(std::size_t len);
+
+    void wr_align();
+
+    void rd_align();
 };

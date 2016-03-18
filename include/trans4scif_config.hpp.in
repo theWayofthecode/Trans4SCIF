@@ -1,0 +1,21 @@
+/*
+	Copyright (c) 2015-2016 CERN
+
+	This software is distributed under the terms of the
+	GNU Lesser General Public Licence version 3 (LGPLv3),
+	copied verbatim in the file "LICENSE".
+	In applying this licence, CERN does not waive
+	the privileges and immunities granted to it by virtue of its status
+	as an Intergovernmental Organization or submit itself to any jurisdiction.
+
+	Author: Aram Santogidis <aram.santogidis@cern.ch>
+*/
+
+#ifndef TRANS4SCIF_TRANS4SCIF_CONFIGURE_HPP_H
+#define TRANS4SCIF_TRANS4SCIF_CONFIGURE_HPP_H
+
+// the configured options and settings for Tutorial
+#define TRANS4SCIF_VERSION_MAJOR @TRANS4SCIF_VERSION_MAJOR@
+#define TRANS4SCIF_VERSION_MINOR @TRANS4SCIF_VERSION_MINOR@
+
+#endif //TRANS4SCIF_TRANS4SCIF_CONFIGURE_HPP_H

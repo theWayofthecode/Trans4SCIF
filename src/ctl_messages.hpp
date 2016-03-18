@@ -12,6 +12,7 @@
 */
 
 #pragma once
+
 #include <cstdint>
 #include <cstddef>
 #include <vector>
@@ -21,9 +22,10 @@
  * in case the size of off_t and std::size_t is different for the platforms of the endpoints.
  */
 struct RMA_id {
-	int64_t off;
-	uint64_t size;
+    int64_t off;
+    uint64_t size;
 };
 
 std::vector<uint8_t> pack_RMA_id_msg(RMA_id osp);
+
 RMA_id unpack_RMA_id_msg(std::vector<uint8_t> msg);
