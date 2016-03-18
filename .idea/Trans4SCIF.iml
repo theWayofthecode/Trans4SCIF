@@ -2,15 +2,25 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/circbuf.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/ctl_messages.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/virt_circbuf.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/scifnode.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/rmawindow.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/scifnode.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/ctl_messages.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/virt_circbuf.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/circbuf.hpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/rmawindow.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/trans4scif.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/include" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/trans4scif_config.hpp.in" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/main.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test_util.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test_ctl_messages.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test_version.cpp" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/unittest" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
@@ -19,19 +29,19 @@
           <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include-fixed" />
           <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include" />
           <root url="file://C:/MinGW/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/MinSizeRel/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Debug/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Release/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/RelWithDebInfo/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Release0/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/RelWithDebInfo0/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/MinSizeRel0/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Debug0/include" />
         </CLASSES>
         <SOURCES>
           <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include-fixed" />
           <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include" />
           <root url="file://C:/MinGW/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/MinSizeRel/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Debug/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Release/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/RelWithDebInfo/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Release0/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/RelWithDebInfo0/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/MinSizeRel0/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Debug0/include" />
         </SOURCES>
       </library>
     </orderEntry>
