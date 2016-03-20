@@ -17,11 +17,10 @@
 #include <cassert>
 #include <sstream>
 #include <sys/types.h>
-#include "constants.hpp"
-#include "rmawindow.hpp"
-#include "util.hpp"
-#include "ctl_messages.hpp"
-#include "trans4scif.hpp"
+#include "constants.h"
+#include "rmawindow.h"
+#include "ctl_messages.h"
+#include "hbsocket.h"
 #include "trans4scif_config.hpp"
 
 namespace t4s {
@@ -32,19 +31,19 @@ std::string trans4scif_version() {
   return ss.str();
 }
 
-Socket::Socket(uint16_t target_node_id, uint16_t target_port) :
+HBSocket::HBSocket(uint16_t target_node_id, uint16_t target_port) :
     sn_(target_node_id, target_port),
     recvbuf_(sn_.CreateRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)) {
   Init();
 }
 
-Socket::Socket(uint16_t listening_port) :
+HBSocket::HBSocket(uint16_t listening_port) :
     sn_(listening_port),
     recvbuf_(sn_.CreateRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)) {
   Init();
 }
 
-void Socket::Init() {
+void HBSocket::Init() {
   /* Send to peer node the recvbuf_ details */
   RMA_id my_id{recvbuf_.get_wr_rmaoff(), recvbuf_.get_space()};
   std::vector<uint8_t> msg_send(PackRMAIdMsg(my_id));
@@ -59,7 +58,7 @@ void Socket::Init() {
 }
 
 
-std::size_t Socket::Send(std::vector<uint8_t>::const_iterator msg_it, std::size_t msg_size) {
+std::size_t HBSocket::Send(std::vector<uint8_t>::const_iterator msg_it, std::size_t msg_size) {
   GetRemRecvbufNotifs();
   if (!rem_recvbuf_->get_space()) {
     return 0;
@@ -111,7 +110,7 @@ std::size_t Socket::Send(std::vector<uint8_t>::const_iterator msg_it, std::size_
 /**
  * When the buffer is empty it should block?
  */
-std::size_t Socket::Recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_size) {
+std::size_t HBSocket::Recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_size) {
   /** TODO: check if msg_msg_size > recv_buf_size */
   UpdateRecvbufSpace();
   if (recvbuf_.is_empty()) {
@@ -154,7 +153,7 @@ std::size_t Socket::Recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_
 /**
  * When the buffer is empty it should block?
  */
-std::vector<uint8_t> Socket::Recv() {
+std::vector<uint8_t> HBSocket::Recv() {
   UpdateRecvbufSpace();
   if (recvbuf_.is_empty()) {
     std::vector<uint8_t> empty_v;
@@ -185,7 +184,7 @@ std::vector<uint8_t> Socket::Recv() {
   return msg;
 }
 
-void Socket::UpdateRecvbufSpace() {
+void HBSocket::UpdateRecvbufSpace() {
   std::size_t chunk_size = 0;
   while (recvbuf_.get_space() && (chunk_size = recvbuf_.WrReadChunkHead())) {
     chunk_size -= recvbuf_.WrAdvance(chunk_size);
@@ -196,7 +195,7 @@ void Socket::UpdateRecvbufSpace() {
   }
 }
 
-void Socket::GetRemRecvbufNotifs() {
+void HBSocket::GetRemRecvbufNotifs() {
   while (sn_.HasRecvMsg()) {
     std::vector<uint8_t> recv_notif_msg = sn_.RecvMsg(sizeof(std::size_t));
     std::size_t msg_size;
@@ -210,6 +209,17 @@ void Socket::GetRemRecvbufNotifs() {
     assert(l == (CHUNK_HEAD_SIZE + msg_size));
     sendbuf_->RdAlign();
   }
+}
+
+
+// Construct a connecting node
+Socket* CreateSocket(uint16_t target_node_id, uint16_t target_port) {
+  return new HBSocket(target_node_id, target_port);
+}
+
+// Construct a listening node
+Socket* CreateSocket(uint16_t listening_port) {
+  return new HBSocket(listening_port);
 }
 
 }

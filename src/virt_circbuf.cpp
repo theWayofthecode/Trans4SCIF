@@ -12,7 +12,7 @@
 */
 
 #include <algorithm>
-#include "virt_circbuf.hpp"
+#include "virt_circbuf.h"
 
 namespace t4s {
 

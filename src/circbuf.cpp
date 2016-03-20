@@ -18,8 +18,8 @@
 #include <system_error>
 #include <cstddef>
 #include <cassert>
-#include "circbuf.hpp"
-#include "constants.hpp"
+#include "circbuf.h"
+#include "constants.h"
 
 namespace t4s {
 

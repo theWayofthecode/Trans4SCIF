@@ -16,8 +16,8 @@
 #include <cstddef>
 #include <iostream>
 #include <sys/types.h>
-#include "constants.hpp"
-#include "util.hpp"
+#include "constants.h"
+#include "util.h"
 
 namespace t4s {
 

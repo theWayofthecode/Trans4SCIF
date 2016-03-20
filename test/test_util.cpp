@@ -12,8 +12,8 @@
 */
 
 #include "catch.hpp"
-#include "trans4scif.hpp"
-#include "util.hpp"
+#include "hbsocket.h"
+#include "util.h"
 
 TEST_CASE("Serializing/deserializing", "[util]") {
 

@@ -12,8 +12,8 @@
 */
 
 #include <system_error>
-#include "scifnode.hpp"
-#include "constants.hpp"
+#include "scifnode.h"
+#include "constants.h"
 
 namespace t4s {
 

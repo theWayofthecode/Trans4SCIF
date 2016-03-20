@@ -6,7 +6,7 @@ set (TRANS4SCIF_VERSION_MAJOR 0)
 set (TRANS4SCIF_VERSION_MINOR 1)
 
 configure_file (
-        "${PROJECT_SOURCE_DIR}/include/trans4scif_config.hpp.in"
+        "${PROJECT_SOURCE_DIR}/include/trans4scif_config.h.in"
         "${PROJECT_BINARY_DIR}/include/trans4scif_config.hpp"
 )
 

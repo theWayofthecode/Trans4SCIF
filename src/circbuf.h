@@ -12,14 +12,14 @@
 */
 
 
-#ifndef _CIRCBUF_HPP_
-#define _CIRCBUF_HPP_
+#ifndef _CIRCBUF_CIRCBUF_H_
+#define _CIRCBUF_CIRCBUF_H_
 
 #include <cstddef>
 #include <vector>
 #include <memory>
-#include "virt_circbuf.hpp"
-#include "rmawindow.hpp"
+#include "virt_circbuf.h"
+#include "rmawindow.h"
 
 namespace t4s {
 

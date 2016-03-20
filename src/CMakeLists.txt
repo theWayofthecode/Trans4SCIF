@@ -3,7 +3,7 @@ set(SOURCE_FILES
         ctl_messages.cpp
         rmawindow.cpp
         scifnode.cpp
-        trans4scif.cpp
+        hbsocket.cpp
         virt_circbuf.cpp)
 
 add_library(trans4scif ${SOURCE_FILES})

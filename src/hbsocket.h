@@ -11,28 +11,26 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#ifndef _SOCKET_SOCKET_HPP_
-#define _SOCKET_SOCKET_HPP_
+#ifndef _SOCKET_SOCKET_H_
+#define _SOCKET_SOCKET_H_
 
 #include <vector>
 #include <cstdint>
-#include "../src/scifnode.hpp"
-#include "../src/virt_circbuf.hpp"
-#include "../src/circbuf.hpp"
+#include "scifnode.h"
+#include "virt_circbuf.h"
+#include "circbuf.h"
+#include "trans4scif.h"
 
 namespace t4s {
 
-std::string trans4scif_version();
-
-class Socket {
+class HBSocket : public Socket {
  private:
   ScifNode sn_;
   Circbuf recvbuf_;
   std::unique_ptr<Circbuf> sendbuf_;
-  /**
-   * Remote (peer) receive buffer. It is virtual in the sense
-   * that it is not backed up by memory but used only for the logistics.
-   */
+
+//   Remote (peer) receive buffer. It is virtual in the sense
+//   that it is not backed up by memory but used only for the logistics.
   std::unique_ptr<VirtCircbuf> rem_recvbuf_;
 
   void Init();
@@ -43,17 +41,19 @@ class Socket {
 
  public:
 
-  /* Construct a connecting node */
-  Socket(uint16_t target_node_id, uint16_t target_port);
+// Construct a connecting node
+  HBSocket(uint16_t target_node_id, uint16_t target_port);
 
-  /* Construct a listening node */
-  Socket(uint16_t listening_port);
+// Construct a listening node
+  HBSocket(uint16_t listening_port);
 
-  std::size_t Send(std::vector<uint8_t>::const_iterator msg_it, std::size_t len);
+  ~HBSocket() override {};
 
-  std::size_t Recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_size);
+  std::size_t Send(std::vector<uint8_t>::const_iterator msg_it, std::size_t len) override;
 
-  std::vector<uint8_t> Recv();
+  std::size_t Recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_size) override;
+
+  std::vector<uint8_t> Recv() override;
 };
 
 }

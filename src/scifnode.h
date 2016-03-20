@@ -11,16 +11,16 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#ifndef _SCIFNODE_HPP_
-#define _SCIFNODE_HPP_
+#ifndef _SCIFNODE_H_
+#define _SCIFNODE_H_
 
 #include <system_error>
 #include <cstdint>
 #include <vector>
 #include <memory>
 #include <sys/types.h>
-#include "scifepd.hpp"
-#include "rmawindow.hpp"
+#include "scifepd.h"
+#include "rmawindow.h"
 
 namespace t4s {
 

@@ -12,8 +12,8 @@
 */
 
 
-#ifndef _CTL_MESSAGES_HPP_
-#define _CTL_MESSAGES_HPP_
+#ifndef _CTL_MESSAGES_H_
+#define _CTL_MESSAGES_H_
 
 #include <cstdint>
 #include <cstddef>

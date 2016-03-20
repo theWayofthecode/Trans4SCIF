@@ -16,7 +16,7 @@
 #include <iostream>
 #include <cstring>
 
-#include "rmawindow.hpp"
+#include "rmawindow.h"
 
 namespace t4s {
 

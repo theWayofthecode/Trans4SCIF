@@ -12,8 +12,8 @@
 */
 
 #include "catch.hpp"
-#include "trans4scif.hpp"
-#include "ctl_messages.hpp"
+#include "hbsocket.h"
+#include "ctl_messages.h"
 
 TEST_CASE("Test packing/unpacking of RMA_id ctl messages", "[ctl_messages]") {
   std::vector<uint8_t> v = t4s::PackRMAIdMsg({3, 4});

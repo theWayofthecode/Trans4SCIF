@@ -11,8 +11,8 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#ifndef _CONSTANTS_CONSTANTS_HPP_
-#define _CONSTANTS_CONSTANTS_HPP_
+#ifndef _CONSTANTS_CONSTANTS_H_
+#define _CONSTANTS_CONSTANTS_H_
 
 #include <cstddef>
 #include <string>

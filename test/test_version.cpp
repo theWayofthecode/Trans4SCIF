@@ -12,7 +12,7 @@
 */
 
 #include "catch.hpp"
-#include "trans4scif.hpp"
+#include "hbsocket.h"
 
 TEST_CASE("Test version") {
   REQUIRE(t4s::trans4scif_version() == "0.1");

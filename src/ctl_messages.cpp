@@ -11,8 +11,8 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#include "util.hpp"
-#include "ctl_messages.hpp"
+#include "util.h"
+#include "ctl_messages.h"
 
 namespace t4s {
 

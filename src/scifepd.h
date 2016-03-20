@@ -13,13 +13,13 @@
 
 
 
-#ifndef _SCIFEPD_SCIFEPD_HPP_
-#define _SCIFEPD_SCIFEPD_HPP_
+#ifndef _SCIFEPD_SCIFEPD_H_
+#define _SCIFEPD_SCIFEPD_H_
 
 #include <scif.h>
 #include <system_error>
 #include <iostream>
-#include "constants.hpp"
+#include "constants.h"
 
 namespace t4s {
 

@@ -11,8 +11,8 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#ifndef _UTIL_UTIL_HPP_
-#define _UTIL_UTIL_HPP_
+#ifndef _UTIL_UTIL_H_
+#define _UTIL_UTIL_H_
 
 #include <cstdint>
 #include <algorithm>
