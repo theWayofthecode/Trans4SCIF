@@ -31,22 +31,22 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include" />
           <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include-fixed" />
+          <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include" />
           <root url="file://C:/MinGW/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/RelWithDebInfo1/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/MinSizeRel1/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Debug1/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Release1/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/RelWithDebInfo2/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/MinSizeRel2/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Debug2/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Release2/include" />
         </CLASSES>
         <SOURCES>
-          <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include" />
           <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include-fixed" />
+          <root url="file://C:/MinGW/lib/gcc/mingw32/4.8.1/include" />
           <root url="file://C:/MinGW/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/RelWithDebInfo1/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/MinSizeRel1/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Debug1/include" />
-          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Release1/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/RelWithDebInfo2/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/MinSizeRel2/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Debug2/include" />
+          <root url="file://$USER_HOME$/.CLion2016.1/system/cmake/generated/Trans4SCIF-9368b0a7/9368b0a7/Release2/include" />
         </SOURCES>
       </library>
     </orderEntry>
