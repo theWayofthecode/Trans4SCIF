@@ -16,16 +16,16 @@
 
 namespace t4s {
 
-std::vector<uint8_t> PackRMAIdMsg(RMA_id id) {
+std::vector<uint8_t> PackRMAIdMsg(RMAId id) {
   std::vector<uint8_t> msg;
   inttype_to_vec_le(id.off, msg);
   inttype_to_vec_le(id.size, msg);
   return msg;
 }
 
-RMA_id UnpackRMAIdMsg(std::vector<uint8_t> msg) {
+RMAId UnpackRMAIdMsg(std::vector<uint8_t> msg) {
   /* assert msg.size() >= sizeof(off_size_pair) */
-  RMA_id id;
+  RMAId id;
   vec_to_inttype_le(msg, id.off);
   msg.erase(msg.begin(), msg.begin() + sizeof(id.off));
   vec_to_inttype_le(msg, id.size);

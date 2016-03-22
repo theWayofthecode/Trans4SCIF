@@ -23,14 +23,14 @@ namespace t4s {
 
 // The type is of known size for any platform in order to avoid corruption
 // in case the size of off_t and std::size_t is different for the platforms of the endpoints.
-struct RMA_id {
+struct RMAId {
   int64_t off;
   uint64_t size;
 };
 
-std::vector<uint8_t> PackRMAIdMsg(RMA_id osp);
+std::vector<uint8_t> PackRMAIdMsg(RMAId osp);
 
-RMA_id UnpackRMAIdMsg(std::vector<uint8_t> msg);
+RMAId UnpackRMAIdMsg(std::vector<uint8_t> msg);
 #endif
 
 }

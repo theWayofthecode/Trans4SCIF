@@ -15,11 +15,11 @@
 #include "hbsocket.h"
 #include "ctl_messages.h"
 
-TEST_CASE("Test packing/unpacking of RMA_id ctl messages", "[ctl_messages]") {
+TEST_CASE("Test packing/unpacking of RMAId ctl messages", "[ctl_messages]") {
   std::vector<uint8_t> v = t4s::PackRMAIdMsg({3, 4});
-  REQUIRE(sizeof(t4s::RMA_id) == v.size());
-  t4s::RMA_id id = t4s::UnpackRMAIdMsg(v);
+  REQUIRE(sizeof(t4s::RMAId) == v.size());
+  t4s::RMAId id = t4s::UnpackRMAIdMsg(v);
   REQUIRE(id.off == 3);
   REQUIRE(id.size == 4);
-  REQUIRE(sizeof(t4s::RMA_id) == v.size());
+  REQUIRE(sizeof(t4s::RMAId) == v.size());
 }

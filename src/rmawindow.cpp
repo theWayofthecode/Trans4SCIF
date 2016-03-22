@@ -15,6 +15,7 @@
 #include <scif.h>
 #include <iostream>
 #include <cstring>
+#include <cerrno>
 
 #include "rmawindow.h"
 
@@ -62,7 +63,7 @@ RMAWindow::~RMAWindow() {
     free(mem_);
   }
   if (epd_ != -1) {
-    if (scif_unregister(epd_, off_, len_) == -1) {
+    if (scif_unregister(epd_, off_, len_) == -1 && errno != ECONNRESET) {
       std::system_error e(errno, std::system_category(), __FILE__LINE__);
       std::cerr << "Warning: scif_unregister: " << e.what() << __FILE__LINE__ << std::endl;
     }

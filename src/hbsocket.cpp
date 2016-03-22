@@ -21,15 +21,8 @@
 #include "rmawindow.h"
 #include "ctl_messages.h"
 #include "hbsocket.h"
-#include "trans4scif_config.hpp"
 
 namespace t4s {
-
-std::string trans4scif_version() {
-  std::stringstream ss;
-  ss << TRANS4SCIF_VERSION_MAJOR << "." << TRANS4SCIF_VERSION_MINOR;
-  return ss.str();
-}
 
 HBSocket::HBSocket(uint16_t target_node_id, uint16_t target_port) :
     sn_(target_node_id, target_port),
@@ -45,12 +38,12 @@ HBSocket::HBSocket(uint16_t listening_port) :
 
 void HBSocket::Init() {
   /* Send to peer node the recvbuf_ details */
-  RMA_id my_id{recvbuf_.get_wr_rmaoff(), recvbuf_.get_space()};
+  RMAId my_id{recvbuf_.get_wr_rmaoff(), recvbuf_.get_space()};
   std::vector<uint8_t> msg_send(PackRMAIdMsg(my_id));
   sn_.SendMsg(msg_send);
   /* Get the peer node's recvbuf_ details */
-  std::vector<uint8_t> msg_recv = sn_.RecvMsg(sizeof(RMA_id));
-  RMA_id peer_id(UnpackRMAIdMsg(msg_recv));
+  std::vector<uint8_t> msg_recv = sn_.RecvMsg(sizeof(RMAId));
+  RMAId peer_id(UnpackRMAIdMsg(msg_recv));
 
   /* Init the rem_recvbuf_ and sendbuf_ */
   rem_recvbuf_.reset(new VirtCircbuf(peer_id.off, peer_id.size));
@@ -210,16 +203,4 @@ void HBSocket::GetRemRecvbufNotifs() {
     sendbuf_->RdAlign();
   }
 }
-
-
-// Construct a connecting node
-Socket* CreateSocket(uint16_t target_node_id, uint16_t target_port) {
-  return new HBSocket(target_node_id, target_port);
-}
-
-// Construct a listening node
-Socket* CreateSocket(uint16_t listening_port) {
-  return new HBSocket(listening_port);
-}
-
 }

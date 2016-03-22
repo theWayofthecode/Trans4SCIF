@@ -4,6 +4,7 @@ set(SOURCE_FILES
         rmawindow.cpp
         scifnode.cpp
         hbsocket.cpp
-        virt_circbuf.cpp)
+        virt_circbuf.cpp
+        trans4scif.cpp)
 
 add_library(trans4scif ${SOURCE_FILES})
