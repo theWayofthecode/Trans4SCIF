@@ -19,7 +19,11 @@
 
 TEST_CASE("ScifNode send/receive", "[scifnode]")
 {
-  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
+  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
+      [](int port) {return new t4s::ScifNode(port);}, //listener
+      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
+  );
+
 
   SECTION("Empty message")
   {
@@ -82,7 +86,11 @@ TEST_CASE("ScifNode send/receive", "[scifnode]")
 
 TEST_CASE("ScifNode writeMsg", "[scifnode]")
 {
-  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
+  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
+      [](int port) {return new t4s::ScifNode(port);}, //listener
+      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
+  );
+
 
   SECTION("Write receive test", "[scifnode]")
   {
@@ -112,7 +120,10 @@ TEST_CASE("ScifNode writeMsg", "[scifnode]")
 
 TEST_CASE("t4s::ScifNode has_recv_msg", "[scifnode]")
 {
-  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
+  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
+      [](int port) {return new t4s::ScifNode(port);}, //listener
+      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
+  );
 
   std::vector<uint8_t> msg(16);
   REQUIRE( sn_pair[0]->SendMsg(msg) == 16 );

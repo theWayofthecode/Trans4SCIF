@@ -47,6 +47,8 @@ class HBSocket : public Socket {
 // Construct a listening node
   HBSocket(uint16_t listening_port);
 
+  HBSocket(ScifEpd &epd);
+
   ~HBSocket() override {};
 
   std::size_t Send(std::vector<uint8_t>::const_iterator msg_it, std::size_t len) override;

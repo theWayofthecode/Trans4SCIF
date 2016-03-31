@@ -21,6 +21,7 @@
 namespace t4s {
 
 // args must be unsigned !!!
+// TODO: make this a constexpr
 #define ROUND_TO_BOUNDARY(s, b) ((s+b-1) & (-b))
 
 template<typename inttype>

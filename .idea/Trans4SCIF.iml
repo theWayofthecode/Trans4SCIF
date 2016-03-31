@@ -18,14 +18,15 @@
       <sourceFolder url="file://$MODULE_DIR$/src/circbuf.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/trans4scif_config.h.in" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test/test_trans4scif.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/test_scifnode.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/main.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test_hbsocket.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/test_trans4scif.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test_ctl_messages.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test/test_scifnode.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test_circbuf.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test_util.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/trace.c" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">

@@ -12,14 +12,20 @@
 */
 
 #include <memory>
+#include <iostream>
 #include <scifnode.h>
 #include "catch.hpp"
 #include "hbsocket.h"
 #include "test_common.h"
 
+//TODO: std::size_t Recv test
+
 TEST_CASE("HBSocket send/receive tests", "[hbsocket]")
 {
-  auto s_pair = MakeConnectedNodes<t4s::HBSocket>();
+  auto s_pair = MakeConnectedNodes<std::unique_ptr<t4s::HBSocket>>(
+      [](int port) {return new t4s::HBSocket(port);}, //listener
+      [](int node, int port) {return new t4s::HBSocket(node, port);} //connecter
+  );
 
   SECTION("Simple message transmission")
   {

@@ -29,14 +29,24 @@ std::string trans4scif_version() {
   return ss.str();
 }
 
-// Construct a connecting node
-Socket* CreateSocket(uint16_t target_node_id, uint16_t target_port) {
+Socket* Connect(uint16_t target_node_id, uint16_t target_port) {
   return new HBSocket(target_node_id, target_port);
 }
 
-// Construct a listening node
-Socket* CreateSocket(uint16_t listening_port) {
+Socket* Listen(uint16_t listening_port) {
   return new HBSocket(listening_port);
+}
+
+Socket* SocketFromEpd(scif_epd_t e) {
+  ScifEpd epd(e);
+  return new HBSocket(epd);
+}
+
+std::future<Socket*> SocketFromEpdAsync(scif_epd_t e) {
+  return std::async(std::launch::async, [e]() -> Socket* {
+    ScifEpd epd(e);
+    return new HBSocket(epd);
+  });
 }
 
 }

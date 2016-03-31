@@ -70,7 +70,10 @@ TEST_CASE("Virtt4s::Circbuf tests", "[virt_circbuf]")
 
 TEST_CASE("circbuf tests", "[circbuf]")
 {
-  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
+  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
+      [](int port) {return new t4s::ScifNode(port);}, //listener
+      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
+  );
   
   std::size_t circbuf_len = 0x1000;
   t4s::Circbuf cbuf(sn_pair[0]->CreateRMAWindow(circbuf_len, SCIF_PROT_WRITE));

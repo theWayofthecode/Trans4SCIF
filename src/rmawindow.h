@@ -29,7 +29,12 @@ class RMAWindow {
   std::size_t len_;
 
  public:
-  /* Copying is not allowed. */
+//  Open a window in the registered memory space of the process.
+//  len will be rounded up to PAGE_SIZE boundary if necessary.
+//  The prot_flags is formed by OR'ing SCIF_PROT_READ and SCIF_PROT_WRITE
+  RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags);
+
+//   Copy is prohibited.
   RMAWindow(const RMAWindow &w) = delete;
 
   RMAWindow &operator=(const RMAWindow &w) = delete;
@@ -37,13 +42,6 @@ class RMAWindow {
   RMAWindow(RMAWindow &&w);
 
   RMAWindow &operator=(RMAWindow &&w);
-
-  /**
-   * Open a window in the registered memory space of the process.
-   * len will be rounded up to PAGE_SIZE boundary if necessary.
-   * The prot_flags is formed by OR'ing SCIF_PROT_READ and SCIF_PROT_WRITE
-   */
-  RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags);
 
   ~RMAWindow();
 

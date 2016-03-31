@@ -15,7 +15,7 @@
 #include <scif.h>
 #include <iostream>
 #include <cstring>
-#include <cerrno>
+#include <cassert>
 
 #include "rmawindow.h"
 
@@ -36,10 +36,10 @@ RMAWindow::RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags) {
 }
 
 RMAWindow::RMAWindow(RMAWindow &&w)
-    : epd_{w.epd_},
-      mem_{w.mem_},
-      off_{w.off_},
-      len_{w.len_} {
+    : epd_(w.epd_),
+      mem_(w.mem_),
+      off_(w.off_),
+      len_(w.len_) {
   w.epd_ = -1;
   w.mem_ = nullptr;
   w.off_ = 0;
@@ -47,11 +47,14 @@ RMAWindow::RMAWindow(RMAWindow &&w)
 }
 
 RMAWindow &RMAWindow::operator=(RMAWindow &&w) {
+  assert(w.mem_);
+  assert(w.epd_ != SCIF_OPEN_FAILED);
+  this->~RMAWindow();
   epd_ = w.epd_;
   mem_ = w.mem_;
   off_ = w.off_;
   len_ = w.len_;
-  w.epd_ = -1;
+  w.epd_ = SCIF_OPEN_FAILED;
   w.mem_ = nullptr;
   w.off_ = 0;
   w.len_ = 0;

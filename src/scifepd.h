@@ -19,47 +19,52 @@
 #include <scif.h>
 #include <system_error>
 #include <iostream>
+#include <cassert>
 #include "constants.h"
 
 namespace t4s {
 
 class ScifEpd {
  private:
-  scif_epd_t epd;
+  scif_epd_t epd_;
  public:
   ScifEpd() {
-    if ((epd = scif_open()) == SCIF_OPEN_FAILED) {
+    if ((epd_ = scif_open()) == SCIF_OPEN_FAILED) {
       throw std::system_error(errno, std::system_category(), __FILE__LINE__);
     }
   }
 
-  /* Copy and move is not supported */
-  ScifEpd(const ScifEpd &e) = delete;
+  explicit ScifEpd(scif_epd_t e) : epd_(e) {}
 
+// Move constructor and assignment
+  ScifEpd(ScifEpd &&e) : epd_(e.epd_) {
+    e.epd_ = SCIF_OPEN_FAILED;
+  }
+
+  ScifEpd &operator=(ScifEpd &&e) {
+    assert(e.epd_ != SCIF_OPEN_FAILED);
+    this->~ScifEpd();
+    epd_ = e.epd_;
+    e.epd_ = SCIF_OPEN_FAILED;
+    return *this;
+  }
+
+// Copy is prohibited
+  ScifEpd(const ScifEpd &e) = delete;
   ScifEpd &operator=(const ScifEpd &e) = delete;
 
-  ScifEpd(ScifEpd &&e) = delete;
-
-  ScifEpd &operator=(ScifEpd &&e) = delete;
 
   ~ScifEpd() {
-    if (scif_close(epd) == -1) {
-      std::system_error e(errno, std::system_category(), __FILE__LINE__);
-      std::cerr << "Warning: scif_close: " << e.what() << std::endl;
+    if (epd_ != SCIF_OPEN_FAILED) {
+      if (scif_close(epd_) == -1) {
+        std::system_error e(errno, std::system_category(), __FILE__LINE__);
+        std::cerr << "Warning: scif_close: " << e.what() << std::endl;
+      }
     }
   }
 
-//   TODO: Maybe implement move assignment and constructor
-
-  void set_epd_t(scif_epd_t e) {
-    if (scif_close(epd) == -1) {
-      throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-    }
-    epd = e;
-  }
-
-  scif_epd_t get_epd_t() const {
-    return epd;
+  scif_epd_t get_scif_epd_t() const {
+    return epd_;
   }
 
 };

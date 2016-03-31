@@ -15,6 +15,8 @@
 #define _TRANS4SCIF_TRANS4SCIF_H_
 
 #include <vector>
+#include <future>
+#include <scif.h>
 
 namespace t4s {
 
@@ -30,10 +32,14 @@ class Socket {
 };
 
 // Construct a connecting node
-Socket* CreateSocket(uint16_t target_node_id, uint16_t target_port);
+Socket* Connect(uint16_t target_node_id, uint16_t target_port);
 
 // Construct a listening node
-Socket* CreateSocket(uint16_t listening_port);
+Socket* Listen(uint16_t listening_port);
+
+// Get a Socket from a connected scif_epd_t
+Socket* SocketFromEpd(scif_epd_t epd);
+std::future<Socket*> SocketFromEpdAsync(scif_epd_t epd);
 
 }
 #endif //_TRANS4SCIF_TRANS4SCIF_H_
