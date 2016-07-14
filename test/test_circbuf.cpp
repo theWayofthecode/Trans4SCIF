@@ -17,7 +17,7 @@
 #include "circbuf.h"
 #include "test_common.h"
 
-TEST_CASE("Virtt4s::Circbuf tests", "[virt_circbuf]")
+TEST_CASE("VirtCircbuf tests", "[virt_circbuf]")
 {
   t4s::VirtCircbuf vcb(0X1000, 0X1000);
 
@@ -87,7 +87,7 @@ TEST_CASE("circbuf tests", "[circbuf]")
     int payload = 0xABCCBA;
     t4s::inttype_to_vec_le(payload, v);
 
-    REQUIRE( sizeof(payload) == cbuf.Write(v.cbegin(), v.size()));
+    REQUIRE( sizeof(payload) == cbuf.Write(v.data(), v.size()));
     cbuf.WrAlign();
     REQUIRE( (cbuf.get_wr_rmaoff() % 0x40) == 0 );
 
@@ -98,7 +98,7 @@ TEST_CASE("circbuf tests", "[circbuf]")
     uint64_t head = 0xCB;
     std::vector<uint8_t> out;
     t4s::inttype_to_vec_le(head, out);
-    cbuf.Write(out.cbegin(), out.size());
+    cbuf.Write(out.data(), out.size());
 
     REQUIRE( cbuf.RdReadResetChunkHead() == head );
   }
@@ -109,7 +109,7 @@ TEST_CASE("circbuf tests", "[circbuf]")
     uint64_t head = 0xCB;
     std::vector<uint8_t> out;
     t4s::inttype_to_vec_le(head, out);
-    cbuf.Write(out.cbegin(), out.size());
+    cbuf.Write(out.data(), out.size());
     cbuf.RdAdvance(sizeof(uint64_t));
     cbuf.WrAdvance(circbuf_len - sizeof(uint64_t));
 

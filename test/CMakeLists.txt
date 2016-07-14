@@ -9,5 +9,5 @@ set(TEST_SOURCE_FILES
 
 include_directories("${PROJECT_SOURCE_DIR}/src")
 
-add_executable(main_test ${TEST_SOURCE_FILES} trace.c)
+add_executable(main_test ${TEST_SOURCE_FILES})
 target_link_libraries(main_test trans4scif scif pthread)

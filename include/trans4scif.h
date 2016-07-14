@@ -26,8 +26,8 @@ std::string trans4scif_version();
 class Socket {
  public:
   virtual ~Socket() {};
-  virtual std::size_t Send(std::vector<uint8_t>::const_iterator msg_it, std::size_t len) = 0;
-  virtual std::size_t Recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_size) = 0;
+  virtual std::size_t Send(const uint8_t *msg, std::size_t msg_size) = 0;
+  virtual std::size_t Recv(uint8_t *msg, std::size_t msg_size) = 0;
   virtual std::vector<uint8_t> Recv() = 0;
 };
 

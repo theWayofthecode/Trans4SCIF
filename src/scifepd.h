@@ -63,7 +63,7 @@ class ScifEpd {
     }
   }
 
-  scif_epd_t get_scif_epd_t() const {
+  scif_epd_t get() const {
     return epd_;
   }
 

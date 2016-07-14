@@ -57,7 +57,7 @@ HBSocket::HBSocket(ScifEpd &epd) :
   Init();
 }
 
-std::size_t HBSocket::Send(std::vector<uint8_t>::const_iterator msg_it, std::size_t msg_size) {
+std::size_t HBSocket::Send(const uint8_t *msg_it, std::size_t msg_size) {
   GetRemRecvbufNotifs();
   if (!rem_recvbuf_->get_space()) {
     return 0;
@@ -107,7 +107,7 @@ std::size_t HBSocket::Send(std::vector<uint8_t>::const_iterator msg_it, std::siz
 }
 
 //  When the buffer is empty it should block?
-std::size_t HBSocket::Recv(std::vector<uint8_t>::iterator msg_it, std::size_t msg_size) {
+std::size_t HBSocket::Recv(uint8_t *msg_it, std::size_t msg_size) {
 //  TODO: check if msg_msg_size > recv_buf_size
   UpdateRecvbufSpace();
   if (recvbuf_.is_empty()) {
@@ -159,13 +159,13 @@ std::vector<uint8_t> HBSocket::Recv() {
 //  Currently the chunk header contains only the size of the chunk
   std::size_t chunk_size = recvbuf_.RdReadResetChunkHead();
   std::vector<uint8_t> msg(chunk_size);
-  auto msg_it = msg.begin();
-  auto msg_size_read = recvbuf_.Read(msg_it, chunk_size);
-  msg_it += msg_size_read;
+  uint8_t *msg_data = msg.data();
+  auto msg_size_read = recvbuf_.Read(msg_data, chunk_size);
+  msg_data += msg_size_read;
   chunk_size -= msg_size_read;
-  /** wrap-around case */
+// wrap-around case
   if (chunk_size) {
-    chunk_size -= recvbuf_.Read(msg_it, chunk_size);
+    chunk_size -= recvbuf_.Read(msg_data, chunk_size);
   }
   assert(!chunk_size);
 

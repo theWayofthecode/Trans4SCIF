@@ -36,9 +36,9 @@ class Circbuf: public VirtCircbuf {
 
 //   TODO: copy move constructors: Copy prohibited, move allowed (defined)
 
-  std::size_t Write(std::vector<uint8_t>::const_iterator src, std::size_t len);
+  std::size_t Write(const uint8_t *src, std::size_t len);
 
-  std::size_t Read(std::vector<uint8_t>::iterator dest, std::size_t len);
+  std::size_t Read(uint8_t *dest, std::size_t len);
 
   void WrResetChunkHead();
 

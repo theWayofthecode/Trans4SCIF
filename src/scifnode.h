@@ -57,7 +57,7 @@ class ScifNode {
   std::vector<uint8_t> RecvMsg(std::size_t size);
 
 // Returns an RMAWindow
-  RMAWindow CreateRMAWindow(std::size_t len, int prot_flags) { return RMAWindow(epd_.get_scif_epd_t(), len, prot_flags); }
+  RMAWindow CreateRMAWindow(std::size_t len, int prot_flags) { return RMAWindow(epd_.get(), len, prot_flags); }
 
 // This method is a simple wrapper arround scif_vwriteto /*
   void WriteMsg(off_t dest, off_t src, std::size_t len);

@@ -23,7 +23,7 @@
 
 namespace t4s {
 
-std::size_t Circbuf::Write(std::vector<uint8_t>::const_iterator src, std::size_t len) {
+std::size_t Circbuf::Write(const uint8_t *src, std::size_t len) {
   /** Copy the payload */
   off_t wr = get_wr();
   std::size_t len2wr = WrAdvance(len);
@@ -32,7 +32,7 @@ std::size_t Circbuf::Write(std::vector<uint8_t>::const_iterator src, std::size_t
   return len2wr;
 }
 
-std::size_t Circbuf::Read(std::vector<uint8_t>::iterator dest, std::size_t len) {
+std::size_t Circbuf::Read(uint8_t *dest, std::size_t len) {
   off_t rd = get_rd();
   std::size_t len2rd = RdAdvance(len);
   std::copy_n(base_mem_ + rd, len2rd, dest);

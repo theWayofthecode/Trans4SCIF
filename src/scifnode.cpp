@@ -22,30 +22,30 @@ ScifNode::ScifNode(uint16_t target_node_id, uint16_t target_port) {
   struct scif_portID target_addr;
   target_addr.node = target_node_id;
   target_addr.port = target_port;
-  if (scif_connect(epd_.get_scif_epd_t(), &target_addr) == -1)
+  if (scif_connect(epd_.get(), &target_addr) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 }
 
 ScifNode::ScifNode(uint16_t listening_port) {
 //   bind
-  if (scif_bind(epd_.get_scif_epd_t(), listening_port) == -1)
+  if (scif_bind(epd_.get(), listening_port) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 
 //   listen (backlog = 1)
-  if (scif_listen(epd_.get_scif_epd_t(), 1) == -1)
+  if (scif_listen(epd_.get(), 1) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 
 //   accept
   scif_epd_t acc_epd_t;
   struct scif_portID peer_addr;
-  if (scif_accept(epd_.get_scif_epd_t(), &peer_addr, &acc_epd_t, SCIF_ACCEPT_SYNC) == -1)
+  if (scif_accept(epd_.get(), &peer_addr, &acc_epd_t, SCIF_ACCEPT_SYNC) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
   epd_ = ScifEpd(acc_epd_t);
 }
 
 // TODO: What if scif_send sends less than payload.size()?
 std::size_t ScifNode::SendMsg(std::vector<uint8_t> &payload) {
-  int bytes = scif_send(epd_.get_scif_epd_t(), payload.data(), payload.size(), SCIF_SEND_BLOCK);
+  int bytes = scif_send(epd_.get(), payload.data(), payload.size(), SCIF_SEND_BLOCK);
 //   TODO: Maybe in case of error earlier return?
   if (bytes == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
@@ -55,7 +55,7 @@ std::size_t ScifNode::SendMsg(std::vector<uint8_t> &payload) {
 
 std::vector<uint8_t> ScifNode::RecvMsg(std::size_t size) {
   std::vector<uint8_t> payload(size);
-  int bytes = scif_recv(epd_.get_scif_epd_t(), payload.data(), size, SCIF_RECV_BLOCK);
+  int bytes = scif_recv(epd_.get(), payload.data(), size, SCIF_RECV_BLOCK);
 //   TODO: Maybe in case of error earlier return?
   if (bytes == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
@@ -63,20 +63,20 @@ std::vector<uint8_t> ScifNode::RecvMsg(std::size_t size) {
 }
 
 void ScifNode::WriteMsg(off_t dest, off_t src, std::size_t len) {
-  if (scif_writeto(epd_.get_scif_epd_t(), src, len, dest, 0) == -1) {
+  if (scif_writeto(epd_.get(), src, len, dest, 0) == -1) {
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
   }
 }
 
 void ScifNode::SignalPeer(off_t dest, std::uint64_t val) {
-  if (scif_fence_signal(epd_.get_scif_epd_t(), 0, 0, dest, val, SCIF_FENCE_INIT_SELF | SCIF_SIGNAL_REMOTE) == -1) {
+  if (scif_fence_signal(epd_.get(), 0, 0, dest, val, SCIF_FENCE_INIT_SELF | SCIF_SIGNAL_REMOTE) == -1) {
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
   }
 }
 
 bool ScifNode::HasRecvMsg() {
   struct scif_pollepd pepd;
-  pepd.epd = epd_.get_scif_epd_t();
+  pepd.epd = epd_.get();
   pepd.events = SCIF_POLLIN;
   pepd.revents = 0;
   if (scif_poll(&pepd, 1, 0) == -1) {

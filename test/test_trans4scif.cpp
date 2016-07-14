@@ -26,12 +26,12 @@ TEST_CASE("Test version", "[trans4scif]") {
 
 void hello_hi (std::shared_ptr<t4s::Socket> s0, std::shared_ptr<t4s::Socket> s1) {
   std::vector<uint8_t> send_msg{'h', 'e', 'l', 'l', 'o'};
-  REQUIRE(send_msg.size() == s0->Send(send_msg.cbegin(), send_msg.size()));
+  REQUIRE(send_msg.size() == s0->Send(send_msg.data(), send_msg.size()));
   std::vector<uint8_t> recv_msg = s1->Recv();
   REQUIRE(recv_msg == send_msg);
 
   std::vector<uint8_t> reply_msg{'h', 'i'};
-  REQUIRE(reply_msg.size() == s1->Send(reply_msg.cbegin(), reply_msg.size()));
+  REQUIRE(reply_msg.size() == s1->Send(reply_msg.data(), reply_msg.size()));
   std::vector<uint8_t> recv_reply = s0->Recv();
   REQUIRE(recv_reply == reply_msg);
 }
@@ -78,12 +78,12 @@ scif_epd_t plain_scif_listen(int listening_port) {
 TEST_CASE("Test SocketFromEpd", "[trans4scif]") {
   auto epd_pair = MakeConnectedNodes<scif_epd_t>(plain_scif_listen, plain_scif_connect);
 
-/*  SECTION("Synchronous") {
+  SECTION("Synchronous") {
     auto s1_fut = std::async(std::launch::async, t4s::SocketFromEpd, epd_pair[1]);
     std::shared_ptr<t4s::Socket> s0(t4s::SocketFromEpd(epd_pair[0]));
     std::shared_ptr<t4s::Socket> s1(s1_fut.get());
     hello_hi(s0, s1);
-  }*/
+  }
 
   SECTION("Asynchronous") {
     auto s0_fut = t4s::SocketFromEpdAsync(epd_pair[0]);

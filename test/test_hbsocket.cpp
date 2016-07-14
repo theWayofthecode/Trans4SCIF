@@ -30,7 +30,7 @@ TEST_CASE("HBSocket send/receive tests", "[hbsocket]")
   SECTION("Simple message transmission")
   {
     std::vector<uint8_t> send_msg{'h', 'e', 'l', 'l', 'o'};
-    REQUIRE( send_msg.size() == s_pair[0]->Send(send_msg.cbegin(), send_msg.size()) );
+    REQUIRE( send_msg.size() == s_pair[0]->Send(send_msg.data(), send_msg.size()) );
     std::vector<uint8_t> recv_msg = s_pair[1]->Recv();
     REQUIRE( recv_msg == send_msg );
   }
@@ -41,7 +41,7 @@ TEST_CASE("HBSocket send/receive tests", "[hbsocket]")
     for (uint8_t &vi : buf_size_msg) {
       vi = 0x40;
     }
-    REQUIRE( buf_size_msg.size() == s_pair[0]->Send(buf_size_msg.cbegin(), buf_size_msg.size()) );
+    REQUIRE( buf_size_msg.size() == s_pair[0]->Send(buf_size_msg.data(), buf_size_msg.size()) );
     REQUIRE( buf_size_msg == s_pair[1]->Recv() );
   }
 
@@ -51,9 +51,9 @@ TEST_CASE("HBSocket send/receive tests", "[hbsocket]")
     for (uint8_t &vi : buf_size_msg) {
       vi = 0x40;
     }
-    REQUIRE( buf_size_msg.size()/2 == s_pair[0]->Send(buf_size_msg.cbegin(), buf_size_msg.size()/2) );
+    REQUIRE( buf_size_msg.size()/2 == s_pair[0]->Send(buf_size_msg.data(), buf_size_msg.size()/2) );
     REQUIRE( buf_size_msg.size()/2 == s_pair[1]->Recv().size() );
-    REQUIRE( buf_size_msg.size() == s_pair[0]->Send(buf_size_msg.cbegin(), buf_size_msg.size()) );
+    REQUIRE( buf_size_msg.size() == s_pair[0]->Send(buf_size_msg.data(), buf_size_msg.size()) );
     REQUIRE( buf_size_msg.size() == s_pair[1]->Recv().size() );
   }
 }
