@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <scif.h>
 #include <cassert>
+#include <iostream>
 #include <sstream>
 #include <sys/types.h>
 #include "constants.h"
@@ -67,7 +68,7 @@ std::size_t HBSocket::Send(const uint8_t *msg_it, std::size_t msg_size) {
   off_t dest_off = rem_recvbuf_->get_wr_rmaoff();
   off_t src_off = sendbuf_->get_wr_rmaoff();
 
-//  Reset the chunk head field to 0. It should be writen by scif_signal
+  //  Reset the chunk head field to 0. It should be writen by scif_signal
   sendbuf_->WrResetChunkHead();
   rem_recvbuf_->WrAdvance(CHUNK_HEAD_SIZE);
 
@@ -113,7 +114,6 @@ std::size_t HBSocket::Recv(uint8_t *msg_it, std::size_t msg_size) {
   if (recvbuf_.is_empty()) {
     return 0;
   }
-
 // Currently the chunk header contains only the size of the chunk
   std::size_t chunk_size = recvbuf_.RdReadResetChunkHead();
 
@@ -126,27 +126,29 @@ std::size_t HBSocket::Recv(uint8_t *msg_it, std::size_t msg_size) {
   };
   std::size_t total_msg_size_recv = read_data();
 
-  if (!recvbuf_.is_empty() && chunk_size && msg_size) {
+  if (chunk_size && msg_size) {
+    assert(!recvbuf_.is_empty());
     total_msg_size_recv += read_data();
   }
 
-//  Truncate
-//  TODO: consider a warning message here
+  //  Truncate
+  //  TODO: consider a warning message here
   std::size_t truncated_msg_size = 0;
-  if (!recvbuf_.is_empty() && chunk_size) {
-    truncated_msg_size += recvbuf_.RdAdvance(chunk_size);
+  if (chunk_size) {
+    assert(!recvbuf_.is_empty());
+    assert(msg_size == 0);
+    truncated_msg_size = recvbuf_.RdAdvance(chunk_size);
   }
 
   recvbuf_.RdAlign();
 
-//  Notify sender
+  //  Notify sender
   std::vector<uint8_t> recv_notif_msg;
   inttype_to_vec_le(total_msg_size_recv + truncated_msg_size, recv_notif_msg);
   sn_.SendMsg(recv_notif_msg);
 
   return total_msg_size_recv;
 }
-
 
 // When the buffer is empty it should block?
 std::vector<uint8_t> HBSocket::Recv() {
@@ -156,14 +158,14 @@ std::vector<uint8_t> HBSocket::Recv() {
     return empty_v;
   }
 
-//  Currently the chunk header contains only the size of the chunk
+  //  Currently the chunk header contains only the size of the chunk
   std::size_t chunk_size = recvbuf_.RdReadResetChunkHead();
   std::vector<uint8_t> msg(chunk_size);
   uint8_t *msg_data = msg.data();
   auto msg_size_read = recvbuf_.Read(msg_data, chunk_size);
   msg_data += msg_size_read;
   chunk_size -= msg_size_read;
-// wrap-around case
+  //  wrap-around case
   if (chunk_size) {
     chunk_size -= recvbuf_.Read(msg_data, chunk_size);
   }
@@ -171,24 +173,19 @@ std::vector<uint8_t> HBSocket::Recv() {
 
   recvbuf_.RdAlign();
 
-//  Notify sender
+  //  Notify sender
   std::vector<uint8_t> recv_notif_msg;
   inttype_to_vec_le(msg.size(), recv_notif_msg);
   sn_.SendMsg(recv_notif_msg);
 
-// Assuming copy elision
+  // Assuming copy elision
   return msg;
 }
 
 void HBSocket::UpdateRecvbufSpace() {
   std::size_t chunk_size = 0;
-  while (recvbuf_.get_space() && (chunk_size = recvbuf_.WrReadChunkHead())) {
-    chunk_size -= recvbuf_.WrAdvance(chunk_size);
-    if (recvbuf_.get_space() && chunk_size) {
-      recvbuf_.WrAdvance(chunk_size);
-    }
-    recvbuf_.WrAlign();
-  }
+  while (recvbuf_.get_space() && (chunk_size = recvbuf_.WrReadChunkHead()))
+    recvbuf_.WrFullAdvanceAlign(CHUNK_HEAD_SIZE + chunk_size);
 }
 
 void HBSocket::GetRemRecvbufNotifs() {
@@ -196,14 +193,8 @@ void HBSocket::GetRemRecvbufNotifs() {
     std::vector<uint8_t> recv_notif_msg = sn_.RecvMsg(sizeof(std::size_t));
     std::size_t msg_size;
     vec_to_inttype_le(recv_notif_msg, msg_size);
-
-    std::size_t l = rem_recvbuf_->RdAdvance(CHUNK_HEAD_SIZE + msg_size);
-    assert(l == (CHUNK_HEAD_SIZE + msg_size));
-    rem_recvbuf_->RdAlign();
-
-    l = sendbuf_->RdAdvance(CHUNK_HEAD_SIZE + msg_size);
-    assert(l == (CHUNK_HEAD_SIZE + msg_size));
-    sendbuf_->RdAlign();
+    rem_recvbuf_->RdFullAdvanceAlign(CHUNK_HEAD_SIZE + msg_size);
+    sendbuf_->RdFullAdvanceAlign(CHUNK_HEAD_SIZE + msg_size);
   }
 }
 

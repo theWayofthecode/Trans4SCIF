@@ -12,6 +12,7 @@
 */
 
 #include <algorithm>
+#include <cassert>
 #include "virt_circbuf.h"
 
 namespace t4s {
@@ -30,16 +31,38 @@ std::size_t VirtCircbuf::RdAdvance(std::size_t rd_len) {
   return len;
 }
 
-void VirtCircbuf::WrAlign() {
+std::size_t VirtCircbuf::WrAlign() {
   off_t new_wr = ROUND_TO_BOUNDARY(wr_, CACHELINE_SIZE);
-  space_ -= new_wr - wr_;
+  std::size_t to_advance = new_wr - wr_;
+  space_ -= to_advance;
   wr_ = new_wr % maxlen_;
+  return to_advance;
 }
 
-void VirtCircbuf::RdAlign() {
+std::size_t VirtCircbuf::RdAlign() {
   off_t new_rd = ROUND_TO_BOUNDARY(rd_, CACHELINE_SIZE);
+  std::size_t to_advance = new_rd - rd_;
   space_ += new_rd - rd_;
   rd_ = new_rd % maxlen_;
+  return to_advance;
+}
+
+std::size_t VirtCircbuf::WrFullAdvanceAlign(std::size_t wr_len) {
+  auto advanced = WrAdvance(wr_len);
+  if (advanced < wr_len) //wrap around case
+    advanced += WrAdvance(wr_len - advanced);
+  assert(advanced == wr_len);
+  advanced += WrAlign();
+  return advanced;
+}
+
+std::size_t VirtCircbuf::RdFullAdvanceAlign(std::size_t rd_len) {
+  auto advanced = RdAdvance(rd_len);
+  if (advanced < rd_len) //wrap around case
+    advanced += RdAdvance(rd_len - advanced);
+  assert(advanced == rd_len);
+  advanced += RdAlign();
+  return advanced;
 }
 
 }

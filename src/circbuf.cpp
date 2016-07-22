@@ -18,17 +18,17 @@
 #include <system_error>
 #include <cstddef>
 #include <cassert>
+#include <cstring>
 #include "circbuf.h"
 #include "constants.h"
 
 namespace t4s {
 
 std::size_t Circbuf::Write(const uint8_t *src, std::size_t len) {
-  /** Copy the payload */
+// Copy the payload
   off_t wr = get_wr();
   std::size_t len2wr = WrAdvance(len);
   std::copy_n(src, len2wr, base_mem_ + wr);
-
   return len2wr;
 }
 
@@ -36,19 +36,20 @@ std::size_t Circbuf::Read(uint8_t *dest, std::size_t len) {
   off_t rd = get_rd();
   std::size_t len2rd = RdAdvance(len);
   std::copy_n(base_mem_ + rd, len2rd, dest);
-
+  std::memset(base_mem_ + rd, 0, len2rd);
   return len2rd;
 }
 
+//TODO: clion bug of not usage it doesn't work with smart pointers?
 void Circbuf::WrResetChunkHead() {
-  /** Reset the chunk head. [The cast is SCIF dependant] */
+// Reset the chunk head. [The cast is SCIF dependant]
   uint64_t *head = reinterpret_cast<uint64_t *>(base_mem_ + get_wr());
   *head = 0;
   WrAdvance(CHUNK_HEAD_SIZE);
 }
 
 uint64_t Circbuf::RdReadResetChunkHead() {
-  /** Read and reset the chunk head. [The cast is SCIF dependant] */
+// Read and reset the chunk head. [The cast is SCIF dependant]
   uint64_t *head = reinterpret_cast<uint64_t *>(base_mem_ + get_rd());
   uint64_t ret = *head;
   *head = 0;
@@ -56,9 +57,9 @@ uint64_t Circbuf::RdReadResetChunkHead() {
   return ret;
 }
 
+//This shouldn't advance the wr. If the head is 0 it simply advances wr.
 uint64_t Circbuf::WrReadChunkHead() {
   uint64_t ret = *(reinterpret_cast<uint64_t *>(base_mem_ + get_wr()));
-  WrAdvance(CHUNK_HEAD_SIZE);
   return ret;
 }
 

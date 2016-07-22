@@ -55,9 +55,13 @@ class VirtCircbuf {
 
   std::size_t RdAdvance(std::size_t len);
 
-  void WrAlign();
+  std::size_t WrFullAdvanceAlign(std::size_t wr_len);
 
-  void RdAlign();
+  std::size_t RdFullAdvanceAlign(std::size_t rd_len);
+
+  std::size_t WrAlign();
+
+  std::size_t RdAlign();
 };
 
 }

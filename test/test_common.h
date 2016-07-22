@@ -33,14 +33,16 @@ std::array<Node, 2> MakeConnectedNodes(Listener listen, Connecter connect) {
 
 // Wait for scif_accept()
   p.get_future().wait();
+  // TODO: Whati is this sleep for?
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
+  uint16_t self_node_id = -1;
+  scif_get_nodeIDs(nullptr, 0, &self_node_id);
   try {
-    sn_pair[1] = Node(connect(0, PORT));
+    sn_pair[1] = Node(connect(self_node_id, PORT));
   } catch (std::system_error e) {
     std::cerr << "Warning: MakeConnectedNodes: " << e.what() << __FILE__LINE__ << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    sn_pair[1] = Node(connect(0, PORT));
+    sn_pair[1] = Node(connect(self_node_id, PORT));
   }
   sn_pair[0] = sn0_fut.get();
   return sn_pair;

@@ -17,7 +17,7 @@
 #include "circbuf.h"
 #include "test_common.h"
 
-TEST_CASE("VirtCircbuf tests", "[virt_circbuf]")
+TEST_CASE("VirtCircbuf basic tests", "[virt_circbuf]")
 {
   t4s::VirtCircbuf vcb(0X1000, 0X1000);
 
@@ -65,6 +65,15 @@ TEST_CASE("VirtCircbuf tests", "[virt_circbuf]")
     REQUIRE( 0x20 == vcb.RdAdvance(0x20) );
     vcb.RdAlign();
     REQUIRE( (0x1000-t4s::CACHELINE_SIZE) == vcb.get_space() );
+  }
+
+  SECTION("virt_cirbuf 128  bytes wrap-around scenario")
+  {
+    std::size_t sz = 128;
+    for (int i = 0; i < 50; ++i) {
+      REQUIRE( vcb.WrFullAdvanceAlign(sz) == sz );
+      REQUIRE( vcb.RdFullAdvanceAlign(sz) == sz );
+    }
   }
 }
 
@@ -124,5 +133,16 @@ TEST_CASE("circbuf tests", "[circbuf]")
     cbuf.WrAlign();
     REQUIRE( 0 == cbuf.RdReadResetChunkHead() );
     cbuf.RdAlign();
+  }
+
+  SECTION("cirbuf 128 bytes wrap-around scenario")
+  {
+    std::vector<uint8_t> v(128);
+    for (int i = 0; i < 50; ++i) {
+      REQUIRE( cbuf.Write(v.data(), v.size()) == v.size() );
+      cbuf.WrAlign();
+      REQUIRE( cbuf.Read(v.data(), v.size()) == v.size() );
+      cbuf.RdAlign();
+    }
   }
 }

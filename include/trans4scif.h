@@ -38,6 +38,7 @@ Socket* Connect(uint16_t target_node_id, uint16_t target_port);
 Socket* Listen(uint16_t listening_port);
 
 // Get a Socket from a connected scif_epd_t
+// TODO: The Sockets from raw scif_epd_ts should be deprecated because of scif_send/scif_recv interference
 Socket* SocketFromEpd(scif_epd_t epd);
 std::future<Socket*> SocketFromEpdAsync(scif_epd_t epd);
 
