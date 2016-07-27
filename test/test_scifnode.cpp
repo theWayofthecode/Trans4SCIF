@@ -12,6 +12,7 @@
 */
 
 #include <memory>
+#include <stdexcept>
 #include "catch.hpp"
 #include "scifnode.h"
 #include "ctl_messages.h"
@@ -82,6 +83,14 @@ TEST_CASE("ScifNode send/receive", "[scifnode]")
     std::vector<uint8_t> vrecv = sn_pair[1]->RecvMsg(sz);
     REQUIRE( sz == vrecv.size() );
   }
+/*
+  SECTION("Test send/recv timeout")
+  {
+    std::size_t sz = 0x2000; //larger than max scif_recv buffer size
+    std::vector<uint8_t> vsend(sz);
+    REQUIRE_THROWS_AS( sn_pair[0]->SendMsg(vsend), std::runtime_error );
+    REQUIRE_THROWS_AS( sn_pair[1]->RecvMsg(sz), std::runtime_error );
+  } */
 }
 
 TEST_CASE("ScifNode writeMsg", "[scifnode]")
@@ -97,23 +106,23 @@ TEST_CASE("ScifNode writeMsg", "[scifnode]")
     t4s::RMAWindow win_send(sn_pair[0]->CreateRMAWindow(0x1000, SCIF_PROT_READ));
     t4s::RMAWindow win_recv(sn_pair[1]->CreateRMAWindow(0x1000, SCIF_PROT_WRITE));
 
-//     Prepare source
+    // Prepare source
     std::vector<uint8_t> v;
     int payload = 0xABCCBA;
 
     t4s::inttype_to_vec_le(payload, v);
     std::copy(v.begin(), v.end(), static_cast<uint8_t *>(win_send.get_mem()));
 
-//     RDMA write
+    // RDMA write
     sn_pair[0]->WriteMsg(win_recv.get_off(), win_send.get_off(), sizeof(payload));
 
-//     Read receive buffer
+    // Read receive buffer
     uint8_t * src = static_cast<uint8_t *>(win_recv.get_mem());
     std::copy(src, src+sizeof(payload), v.begin());
     int result = 0;
     t4s::vec_to_inttype_le(v, result);
 
-//     Verify the result
+    // Verify the result
     REQUIRE( payload == result );
   }
 }

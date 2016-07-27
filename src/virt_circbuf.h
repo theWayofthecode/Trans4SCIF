@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <iostream>
 #include <sys/types.h>
-#include "constants.h"
+#include "trans4scif_config.h"
 #include "util.h"
 
 namespace t4s {

@@ -5,6 +5,7 @@ set(SOURCE_FILES
         scifnode.cpp
         hbsocket.cpp
         virt_circbuf.cpp
+        util.cpp
         trans4scif.cpp)
 
 add_library(trans4scif SHARED ${SOURCE_FILES})

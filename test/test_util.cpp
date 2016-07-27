@@ -13,7 +13,7 @@
 
 #include "catch.hpp"
 #include "util.h"
-#include "constants.h"
+#include "../src/trans4scif_config.h"
 
 TEST_CASE("Serializing/deserializing", "[util]") {
 

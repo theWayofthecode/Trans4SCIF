@@ -21,7 +21,7 @@
 namespace t4s {
 
 // Return the version of the library in string
-std::string trans4scif_version();
+std::string trans4scif_config();
 
 class Socket {
  public:

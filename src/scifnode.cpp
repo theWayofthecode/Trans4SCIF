@@ -12,8 +12,10 @@
 */
 
 #include <system_error>
+#include <stdexcept>
+#include <cassert>
 #include "scifnode.h"
-#include "constants.h"
+#include "trans4scif_config.h"
 
 namespace t4s {
 
@@ -27,15 +29,15 @@ ScifNode::ScifNode(uint16_t target_node_id, uint16_t target_port) {
 }
 
 ScifNode::ScifNode(uint16_t listening_port) {
-//   bind
+  // bind
   if (scif_bind(epd_.get(), listening_port) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 
-//   listen (backlog = 1)
+  // listen (backlog = 1)
   if (scif_listen(epd_.get(), 1) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 
-//   accept
+  // accept
   scif_epd_t acc_epd_t;
   struct scif_portID peer_addr;
   if (scif_accept(epd_.get(), &peer_addr, &acc_epd_t, SCIF_ACCEPT_SYNC) == -1)
@@ -43,22 +45,34 @@ ScifNode::ScifNode(uint16_t listening_port) {
   epd_ = ScifEpd(acc_epd_t);
 }
 
-// TODO: What if scif_send sends less than payload.size()?
-std::size_t ScifNode::SendMsg(std::vector<uint8_t> &payload) {
-  int bytes = scif_send(epd_.get(), payload.data(), payload.size(), SCIF_SEND_BLOCK);
-//   TODO: Maybe in case of error earlier return?
-  if (bytes == -1)
-    throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+std::size_t ScifNode::transmission(int(*trans_prim)(scif_epd_t, void *, int, int),
+                                   std::vector<uint8_t>::iterator start,
+                                   std::vector<uint8_t>::iterator end) {
+  auto it = start;
+  int i;
+  for (i = 0; i < SCIF_TRANS_RETRIES; ++i) {
+    int bytes = trans_prim(epd_.get(), &(*it), std::distance(it, end), 0);
+    if (bytes == -1)
+      throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+    std::advance(it, bytes);
+    if (std::distance(it, end) == 0)
+      break;
+    scaled_sleep(i, SCIF_TRANS_RETRIES/2, SCIF_TRANS_RETRIES - 100);
+  }
+  if (i == SCIF_TRANS_RETRIES) {
+    throw std::runtime_error("scif_send/recv retries exhausted.");
+  }
+  return std::distance(start, it);
+}
 
-  return bytes;
+std::size_t ScifNode::SendMsg(std::vector<uint8_t> &payload) {
+  return transmission(scif_send, payload.begin(), payload.end());
 }
 
 std::vector<uint8_t> ScifNode::RecvMsg(std::size_t size) {
   std::vector<uint8_t> payload(size);
-  int bytes = scif_recv(epd_.get(), payload.data(), size, SCIF_RECV_BLOCK);
-//   TODO: Maybe in case of error earlier return?
-  if (bytes == -1)
-    throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+  auto bytes_recv = transmission(scif_recv, payload.begin(), payload.end());
+  assert(size == bytes_recv);
   return payload;
 }
 

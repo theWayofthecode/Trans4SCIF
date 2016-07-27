@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <scif.h>
 #include <sys/types.h>
-#include "constants.h"
+#include "trans4scif_config.h"
 #include "util.h"
 
 namespace t4s {
@@ -29,12 +29,12 @@ class RMAWindow {
   std::size_t len_;
 
  public:
-//  Open a window in the registered memory space of the process.
-//  len will be rounded up to PAGE_SIZE boundary if necessary.
-//  The prot_flags is formed by OR'ing SCIF_PROT_READ and SCIF_PROT_WRITE
+  //  Open a window in the registered memory space of the process.
+  //  len will be rounded up to PAGE_SIZE boundary if necessary.
+  //  The prot_flags is formed by OR'ing SCIF_PROT_READ and SCIF_PROT_WRITE
   RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags);
 
-//   Copy is prohibited.
+  //   Copy is prohibited.
   RMAWindow(const RMAWindow &w) = delete;
 
   RMAWindow &operator=(const RMAWindow &w) = delete;

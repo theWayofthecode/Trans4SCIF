@@ -29,28 +29,27 @@ class HBSocket : public Socket {
   Circbuf recvbuf_;
   std::unique_ptr<Circbuf> sendbuf_;
 
-//   Remote (peer) receive buffer. It is virtual in the sense
-//   that it is not backed up by memory but used only for the logistics.
+  // Remote (peer) receive buffer. It is virtual in the sense
+  // that it is not backed up by memory but used only for the logistics.
   std::unique_ptr<VirtCircbuf> rem_recvbuf_;
 
   void Init();
-
   void GetRemRecvbufNotifs();
-
   void UpdateRecvbufSpace();
 
  public:
 
-// Construct a connecting node
+  // Construct a connecting node
   HBSocket(uint16_t target_node_id, uint16_t target_port);
 
-// Construct a listening node
+  // Construct a listening node
   HBSocket(uint16_t listening_port);
 
   HBSocket(ScifEpd &epd);
 
   ~HBSocket() override {};
 
+  // Sends at most len bytes (Streaming semantics)
   std::size_t Send(const uint8_t *msg_it, std::size_t len) override;
 
   std::size_t Recv(uint8_t *msg_it, std::size_t msg_size) override;

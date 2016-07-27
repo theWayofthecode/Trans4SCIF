@@ -27,8 +27,11 @@ namespace t4s {
 class ScifNode {
  private:
   ScifEpd epd_;
- public:
+  std::size_t transmission(int(*trans_prim)(scif_epd_t, void *, int, int),
+                                     std::vector<uint8_t>::iterator start,
+                                     std::vector<uint8_t>::iterator end);
 
+ public:
 //   Construct a connecting node
   ScifNode(uint16_t target_node_id, uint16_t target_port);
 
@@ -53,7 +56,6 @@ class ScifNode {
 
 // Receivs synchronously size bytes.
 // On error it throws a system_error exception
-// TODO: rething about boundary preservation. Shouldn't bytes be discarded?
   std::vector<uint8_t> RecvMsg(std::size_t size);
 
 // Returns an RMAWindow

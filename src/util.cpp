@@ -11,11 +11,18 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#ifndef TRANS4SCIF_TRANS4SCIF_CONFIGURE_HPP_H
-#define TRANS4SCIF_TRANS4SCIF_CONFIGURE_HPP_H
+#include "util.h"
 
-// the configured options and settings for Tutorial
-#define TRANS4SCIF_VERSION_MAJOR @TRANS4SCIF_VERSION_MAJOR@
-#define TRANS4SCIF_VERSION_MINOR @TRANS4SCIF_VERSION_MINOR@
+namespace t4s {
 
-#endif //TRANS4SCIF_TRANS4SCIF_CONFIGURE_HPP_H
+void scaled_sleep(int v, int s, int m) {
+  if (v < s) {
+    std::this_thread::sleep_for(std::chrono::microseconds(10));
+  } else if (v < m) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  } else {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
+
+}

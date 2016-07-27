@@ -15,21 +15,21 @@
 #define _CONSTANTS_CONSTANTS_H_
 
 #include <cstddef>
+#include <cstdlib>
+#include <memory>
 #include <string>
 #include <array>
 
-#define INT_TO_STR_(i) #i
-#define INT_TO_STR(i) INT_TO_STR_(i)
-#define __FILE__LINE__ (__FILE__ + std::string(":") + INT_TO_STR(__LINE__))
-
 namespace t4s {
+constexpr int TRANS4SCIF_VERSION_MAJOR = @TRANS4SCIF_VERSION_MAJOR@;
+constexpr int TRANS4SCIF_VERSION_MINOR = @TRANS4SCIF_VERSION_MINOR@;
 
 constexpr std::size_t PAGE_SIZE = 0x1000;
 constexpr std::size_t CACHELINE_SIZE = 0x40;
 constexpr std::size_t CHUNK_HEAD_SIZE = sizeof(uint64_t);
-
-constexpr std::size_t RECV_BUF_SIZE = 2 * PAGE_SIZE;
-
+constexpr int SCIF_TRANS_RETRIES = 1000;
+constexpr std::size_t RECV_BUF_SIZE = @RECV_BUF_SIZE@;
 }
+
 #endif
 

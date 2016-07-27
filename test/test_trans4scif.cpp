@@ -15,12 +15,13 @@
 #include <cassert>
 #include <algorithm>
 #include <future>
+#include <random>
 #include <scif.h>
 #include "catch.hpp"
 #include "trans4scif.h"
 #include "test_common.h"
 #include "scifepd.h"
-#include "constants.h"
+#include "../src/trans4scif_config.h"
 
 
 scif_epd_t plain_scif_connect(int target_node_id, int target_port) {
@@ -70,7 +71,7 @@ void hello_hi (std::shared_ptr<t4s::Socket> s0, std::shared_ptr<t4s::Socket> s1)
 }
 
 TEST_CASE("Test version", "[trans4scif]") {
-  REQUIRE( t4s::trans4scif_version() == "0.2" );
+  std::cerr << t4s::trans4scif_config();
 }
 
 TEST_CASE("Send one byte", "[trans4scif]") {
@@ -82,7 +83,7 @@ TEST_CASE("Send one byte", "[trans4scif]") {
   REQUIRE(r == 'x');
 }
 
-TEST_CASE("Send one byte and wrap around", "[trans4scif]") {
+TEST_CASE("Split wrap around", "[trans4scif]") {
   auto s_pair = MakeConnectedNodes<std::shared_ptr < t4s::Socket>>
   (t4s::Listen, t4s::Connect);
 
@@ -102,6 +103,13 @@ TEST_CASE("Send one byte and wrap around", "[trans4scif]") {
   REQUIRE( chunk_size == s_pair[1]->Recv(recv_msg.data(), chunk_size) );
   REQUIRE( std::all_of(recv_msg.begin(), recv_msg.begin() + chunk_size,
            [fill_value](uint8_t v){return v == fill_value;}) );
+}
+
+TEST_CASE("Send and Recv 0 bytes", "[trans4scif]") {
+  auto s_pair = MakeConnectedNodes<std::shared_ptr < t4s::Socket>>
+  (t4s::Listen, t4s::Connect);
+  REQUIRE(0 == s_pair[0]->Send(nullptr, 0));
+  REQUIRE(0 == s_pair[1]->Recv(nullptr, 0));
 }
 
 TEST_CASE("Test Socket with hello_hi", "[trans4scif]") {
@@ -126,4 +134,25 @@ TEST_CASE("Test SocketFromEpd", "[trans4scif]") {
     std::shared_ptr<t4s::Socket> s1(s1_fut.get());
     hello_hi(s0, s1);
   }
+}
+
+TEST_CASE("Random data transfers") {
+  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::Listen, t4s::Connect);
+  std::uniform_int_distribution<> dist(0, t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE - 1);
+  std::knuth_b eng(0);
+
+  for (int i = 0; i < 1000; ++i) {
+    int sz = dist(eng);
+    std::vector<uint8_t> sbuf(sz);
+    std::for_each(sbuf.begin(), sbuf.end(), [&dist, &eng](uint8_t &n){ n = dist(eng) % 0xff; });
+    std::vector<uint8_t> rbuf(sz);
+    REQUIRE( sbuf.size() == s_pair[0]->Send(sbuf.data(), sbuf.size()) );
+    REQUIRE( rbuf.size() == s_pair[1]->Recv(rbuf.data(), rbuf.size()) );
+    REQUIRE( sbuf == rbuf );
+  }
+  //Verify if the recv buffer is
+  std::vector<uint8_t> sbuf(t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE);
+  std::vector<uint8_t> rbuf(t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE);
+  REQUIRE( sbuf.size() == s_pair[0]->Send(sbuf.data(), sbuf.size()) );
+  REQUIRE( rbuf.size() == s_pair[1]->Recv(rbuf.data(), rbuf.size()) );
 }

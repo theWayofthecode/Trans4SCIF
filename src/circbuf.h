@@ -23,7 +23,6 @@
 
 namespace t4s {
 
-// TODO: copy prohibited. Think about move
 class Circbuf: public VirtCircbuf {
  private:
   RMAWindow win_;
@@ -34,8 +33,12 @@ class Circbuf: public VirtCircbuf {
                          win_{std::move(w)},
                          base_mem_{static_cast<uint8_t *>(win_.get_mem())} { }
 
-//   TODO: copy move constructors: Copy prohibited, move allowed (defined)
-
+  // Copy and move is prohibited.
+  Circbuf(const Circbuf &w) = delete;
+  Circbuf &operator=(const Circbuf &w) = delete;
+  Circbuf(Circbuf &&w) = delete;
+  Circbuf &operator=(Circbuf &&w) = delete;
+  
   std::size_t Write(const uint8_t *src, std::size_t len);
 
   std::size_t Read(uint8_t *dest, std::size_t len);

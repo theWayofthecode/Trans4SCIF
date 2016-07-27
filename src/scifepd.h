@@ -20,7 +20,8 @@
 #include <system_error>
 #include <iostream>
 #include <cassert>
-#include "constants.h"
+#include "trans4scif_config.h"
+#include "util.h"
 
 namespace t4s {
 

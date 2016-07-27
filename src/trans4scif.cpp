@@ -23,9 +23,12 @@
 
 namespace t4s {
 
-std::string trans4scif_version() {
+std::string trans4scif_config() {
   std::stringstream ss;
-  ss << TRANS4SCIF_VERSION_MAJOR << "." << TRANS4SCIF_VERSION_MINOR;
+  ss << "Version=" << TRANS4SCIF_VERSION_MAJOR
+     << "." << TRANS4SCIF_VERSION_MINOR << std::endl;
+  ss << "RECV_BUF_SIZE=" << RECV_BUF_SIZE << "B\n";
+  ss << "SCIF_TRANS_RETRIES=" << SCIF_TRANS_RETRIES << std::endl;
   return ss.str();
 }
 

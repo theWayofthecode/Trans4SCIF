@@ -17,12 +17,16 @@
 #include <cstdint>
 #include <algorithm>
 #include <vector>
+#include <thread>
+
+#define INT_TO_STR_(i) #i
+#define INT_TO_STR(i) INT_TO_STR_(i)
+#define __FILE__LINE__ (__FILE__ + std::string(":") + INT_TO_STR(__LINE__))
+
+// args must be unsigned integers !!!
+#define ROUND_TO_BOUNDARY(s, b) ((s+b-1) & (-b))
 
 namespace t4s {
-
-// args must be unsigned !!!
-// TODO: make this a constexpr
-#define ROUND_TO_BOUNDARY(s, b) ((s+b-1) & (-b))
 
 template<typename inttype>
 void inttype_to_vec_le(inttype in, std::vector<uint8_t> &out) {
@@ -40,6 +44,8 @@ void vec_to_inttype_le(const std::vector<uint8_t> &in, inttype &out) {
     out = (out << 8) | *it;
   }
 }
+
+void scaled_sleep(int v, int s, int m);
 
 }
 #endif
