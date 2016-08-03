@@ -136,12 +136,12 @@ TEST_CASE("Test SocketFromEpd", "[trans4scif]") {
   }
 }
 
-TEST_CASE("Random data transfers") {
+TEST_CASE("Random data transfers", "[trans4scif]") {
   auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::Listen, t4s::Connect);
   std::uniform_int_distribution<> dist(0, t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE - 1);
   std::knuth_b eng(0);
 
-  for (int i = 0; i < 1000; ++i) {
+  for (int i = 0; i < 100; ++i) {
     int sz = dist(eng);
     std::vector<uint8_t> sbuf(sz);
     std::for_each(sbuf.begin(), sbuf.end(), [&dist, &eng](uint8_t &n){ n = dist(eng) % 0xff; });

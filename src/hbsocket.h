@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <iostream>
 #include "scifnode.h"
 #include "virt_circbuf.h"
 #include "circbuf.h"
@@ -40,14 +41,13 @@ class HBSocket : public Socket {
  public:
 
   // Construct a connecting node
-  HBSocket(uint16_t target_node_id, uint16_t target_port);
+  explicit HBSocket(uint16_t target_node_id, uint16_t target_port);
 
   // Construct a listening node
-  HBSocket(uint16_t listening_port);
+  explicit HBSocket(uint16_t listening_port);
 
-  HBSocket(ScifEpd &epd);
-
-  ~HBSocket() override {};
+  // Contruct from an already connected node
+  explicit HBSocket(ScifEpd &epd);
 
   // Sends at most len bytes (Streaming semantics)
   std::size_t Send(const uint8_t *msg_it, std::size_t len) override;
