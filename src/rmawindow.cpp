@@ -25,14 +25,12 @@ RMAWindow::RMAWindow(scif_epd_t epd, std::size_t len, int prot_flags) {
   this->epd_ = epd;
   this->len_ = ROUND_TO_BOUNDARY(len, PAGE_SIZE);
   int err = posix_memalign(&mem_, PAGE_SIZE, this->len_);
-  if (err) {
+  if (err)
     throw std::system_error(err, std::system_category(), __FILE__LINE__);
-  }
   std::memset(mem_, 0, this->len_);
   off_ = scif_register(epd, mem_, this->len_, 0, prot_flags, 0);
-  if (off_ == SCIF_REGISTER_FAILED) {
+  if (off_ == SCIF_REGISTER_FAILED)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-  }
 }
 
 RMAWindow::RMAWindow(RMAWindow &&w)
