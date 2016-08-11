@@ -148,28 +148,6 @@ std::size_t HBSocket::Recv(uint8_t *data, std::size_t data_size) {
   return bytes;
 }
 
-std::vector<uint8_t> HBSocket::Recv() {
-  UpdateRecvbufSpace();
-  if (recvbuf_.is_empty()) {
-    std::vector<uint8_t> empty_v;
-    return empty_v;
-  }
-
-  //  Currently the chunk header contains only the size of the chunk
-  std::size_t chunk_size = recvbuf_.RdReadResetChunkHead();
-  std::vector<uint8_t> msg(chunk_size);
-  chunk_size -= recvbuf_.Read(msg.data(), chunk_size);
-  assert(!chunk_size);
-  recvbuf_.RdAlign();
-
-  //  Notify sender
-  std::vector<uint8_t> recv_notif_msg;
-  inttype_to_vec_le(msg.size(), recv_notif_msg);
-  sn_.SendMsg(recv_notif_msg);
-
-  // Assuming copy elision
-  return msg;
-}
 
 void HBSocket::UpdateRecvbufSpace() {
   std::size_t chunk_size = 0;

@@ -53,8 +53,6 @@ class HBSocket : public Socket {
   std::size_t Send(const uint8_t *msg_it, std::size_t len) override;
 
   std::size_t Recv(uint8_t *msg_it, std::size_t msg_size) override;
-
-  std::vector<uint8_t> Recv() override;
 };
 
 }

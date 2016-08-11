@@ -36,6 +36,15 @@ void inttype_to_vec_le(inttype in, std::vector<uint8_t> &out) {
 }
 
 template<typename inttype>
+std::vector<uint8_t> inttype_to_vec_le(inttype in) {
+  std::vector<uint8_t> out;
+  for (int i = 0; i < sizeof(in); i++, in >>= 8) {
+    out.push_back(in & 0xff);
+  }
+  return out;
+}
+
+template<typename inttype>
 void vec_to_inttype_le(const std::vector<uint8_t> &in, inttype &out) {
   out = 0;
   for (auto it = in.cbegin() + std::min(sizeof(out), in.size()) - 1;
@@ -43,6 +52,17 @@ void vec_to_inttype_le(const std::vector<uint8_t> &in, inttype &out) {
        --it) {
     out = (out << 8) | *it;
   }
+}
+
+template<typename inttype>
+inttype vec_to_inttype_le(const std::vector<uint8_t> &in) {
+  inttype out = 0;
+  for (auto it = in.cbegin() + std::min(sizeof(out), in.size()) - 1;
+       it >= in.cbegin();
+       --it) {
+    out = (out << 8) | *it;
+  }
+  return out;
 }
 
 void scaled_sleep(int v, int s, int m);

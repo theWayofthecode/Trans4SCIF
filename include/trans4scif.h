@@ -28,7 +28,6 @@ class Socket {
   virtual ~Socket() {};
   virtual std::size_t Send(const uint8_t *msg, std::size_t msg_size) = 0;
   virtual std::size_t Recv(uint8_t *msg, std::size_t msg_size) = 0;
-  virtual std::vector<uint8_t> Recv() = 0;
 };
 
 // Construct a connecting node

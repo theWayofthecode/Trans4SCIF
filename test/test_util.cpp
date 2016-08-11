@@ -43,6 +43,12 @@ TEST_CASE("Serializing/deserializing", "[util]") {
     t4s::vec_to_inttype_le(v, out);
     REQUIRE(in == out);
   }
+
+  SECTION("off_t with return value versions") {
+    off_t off=0x1555;
+    auto v = t4s::inttype_to_vec_le(off);
+    REQUIRE(off == t4s::vec_to_inttype_le<off_t>(v));
+  }
 }
 
 TEST_CASE("ROUND_TO_BOUNDARY macro test", "[util]") {

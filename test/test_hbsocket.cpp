@@ -28,36 +28,6 @@ TEST_CASE("HBSocket send/receive tests", "[hbsocket]")
       [](int node, int port) {return new t4s::HBSocket(node, port);} //connecter
   );
 
-  SECTION("Simple message transmission")
-  {
-    std::vector<uint8_t> send_msg{'h', 'e', 'l', 'l', 'o'};
-    REQUIRE( send_msg.size() == s_pair[0]->Send(send_msg.data(), send_msg.size()) );
-    std::vector<uint8_t> recv_msg = s_pair[1]->Recv();
-    REQUIRE( recv_msg == send_msg );
-  }
-
-  SECTION("Simple Full buffer transfer test")
-  {
-    std::vector<uint8_t> buf_size_msg(t4s::RECV_BUF_SIZE - 8);
-    for (uint8_t &vi : buf_size_msg) {
-      vi = 0x40;
-    }
-    REQUIRE( buf_size_msg.size() == s_pair[0]->Send(buf_size_msg.data(), buf_size_msg.size()) );
-    REQUIRE( buf_size_msg == s_pair[1]->Recv() );
-  }
-
-  SECTION("Buffer wrap up case")
-  {
-    std::vector<uint8_t> buf_size_msg(t4s::RECV_BUF_SIZE - 8);
-    for (uint8_t &vi : buf_size_msg) {
-      vi = 0x40;
-    }
-    REQUIRE( buf_size_msg.size()/2 == s_pair[0]->Send(buf_size_msg.data(), buf_size_msg.size()/2) );
-    REQUIRE( buf_size_msg.size()/2 == s_pair[1]->Recv().size() );
-    REQUIRE( buf_size_msg.size() == s_pair[0]->Send(buf_size_msg.data(), buf_size_msg.size()) );
-    REQUIRE( buf_size_msg.size() == s_pair[1]->Recv().size() );
-  }
-
   SECTION("Test recv truncation")
   {
     std::vector<uint8_t> wbuf(t4s::RECV_BUF_SIZE);
