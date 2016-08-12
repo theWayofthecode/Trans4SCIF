@@ -2,7 +2,9 @@ set(SOURCE_FILES
         circbuf.cpp
         ctl_messages.cpp
         rmawindow.cpp
-        rmarecords.cpp
+        mmapmem.cpp
+        rmarecordsreader.cpp
+        rmarecordswriter.cpp
         scifnode.cpp
         hbsocket.cpp
         virt_circbuf.cpp

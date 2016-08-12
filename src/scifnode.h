@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include "scifepd.h"
 #include "rmawindow.h"
+#include "mmapmem.h"
 
 namespace t4s {
 
@@ -59,7 +60,14 @@ class ScifNode {
   std::vector<uint8_t> RecvMsg(std::size_t size);
 
   // Returns an RMAWindow
-  RMAWindow CreateRMAWindow(std::size_t len, int prot_flags) { return RMAWindow(epd_.get(), len, prot_flags); }
+  RMAWindow CreateRMAWindow(std::size_t len, int prot_flags) {
+    return RMAWindow(epd_.get(), len, prot_flags);
+  }
+
+  // Returns an mmap object
+  Mmapmem createMmapmem(off_t off, std::size_t len, int prot_flags) {
+    return Mmapmem(epd_.get(), off, len, prot_flags);
+  }
 
   // This method is a simple wrapper arround scif_vwriteto /*
   void WriteMsg(off_t dest, off_t src, std::size_t len);

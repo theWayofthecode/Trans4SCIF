@@ -23,7 +23,7 @@ include_directories(
         "${PROJECT_SOURCE_DIR}/include"
 )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2")
 
 add_subdirectory(src)
 add_subdirectory(test)

@@ -23,12 +23,13 @@ std::vector<uint8_t> PackRMAIdMsg(RMAId id) {
   return msg;
 }
 
-RMAId UnpackRMAIdMsg(std::vector<uint8_t> msg) {
+RMAId UnpackRMAIdMsg(std::vector<uint8_t> &msg) {
   /* assert msg.size() >= sizeof(off_size_pair) */
   RMAId id;
-  vec_to_inttype_le(msg, id.off);
+  id.off = vec_to_inttype_le<int64_t>(msg);
   msg.erase(msg.begin(), msg.begin() + sizeof(id.off));
-  vec_to_inttype_le(msg, id.size);
+  id.size = vec_to_inttype_le<uint64_t>(msg);
+  msg.erase(msg.begin(), msg.begin() + sizeof(id.size));
   return id;
 }
 

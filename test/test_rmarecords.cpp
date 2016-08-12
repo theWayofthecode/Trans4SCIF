@@ -15,7 +15,8 @@
 #include "scifnode.h"
 #include "util.h"
 #include "catch.hpp"
-#include "rmarecords.h"
+#include "rmarecordsreader.h"
+#include "rmarecordswriter.h"
 #include "test_common.h"
 #include "../src/trans4scif_config.h"
 
@@ -28,10 +29,17 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
 
   t4s::RMAWindow win_send(sn_pair[0]->CreateRMAWindow(0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE));
   t4s::RMAWindow win_recv(sn_pair[1]->CreateRMAWindow(0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE));
-
-  t4s::RMARecords sender(win_send.get_mem(), win_recv.get_mem(), win_recv.get_off());
-  t4s::RMARecords recv(win_send.get_mem(), win_recv.get_mem(), -1);
-
+  t4s::Record inval;
+  inval.start = inval.end = -1;
+  std::fill_n(static_cast<t4s::Record *>(win_recv.get_mem()), win_recv.get_len()/sizeof(t4s::Record), inval);
+  auto mmap_wr = sn_pair[0]->createMmapmem(win_recv.get_off(), 0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE);
+  auto mmap_buf = sn_pair[1]->createMmapmem(win_send.get_off(), 0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE);
+  REQUIRE(win_send.get_off() == mmap_buf.get_off());
+  REQUIRE(win_recv.get_off() == mmap_wr.get_off());
+  off_t win_recv_off = win_recv.get_off();
+  off_t win_send_off = win_send.get_off();
+  t4s::RMARecordsWriter sender(win_send, mmap_wr);
+  t4s::RMARecordsReader recv(mmap_buf, win_recv);
 
   SECTION("Check read and write when recv_buf is empty")
   {
@@ -43,7 +51,7 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
   {
     REQUIRE(sender.canWrite());
     off_t off = sender.written(100);
-    REQUIRE(win_recv.get_off()+sizeof(uint64_t) == off);
+    REQUIRE(win_recv_off+sizeof(uint64_t) == off);
     sn_pair[0]->SignalPeer(off, 100);
     t4s::Record rec = sender.getBufRec();
     REQUIRE(rec.start == 128);
@@ -56,7 +64,7 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
     rec = sender.getBufRec();
     REQUIRE(rec.start == 128);
     REQUIRE(rec.end == t4s::RECV_BUF_SIZE);
-    REQUIRE(win_recv.get_off()+sizeof(t4s::Record)+sizeof(uint64_t) == sender.written(t4s::RECV_BUF_SIZE-128));
+    REQUIRE(win_recv_off+sizeof(t4s::Record)+sizeof(uint64_t) == sender.written(t4s::RECV_BUF_SIZE-128));
     REQUIRE(sender.canWrite());
     rec = sender.getBufRec();
     REQUIRE(rec.start == 0);
@@ -67,7 +75,7 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
   {
     REQUIRE(sender.canWrite());
     off_t off = sender.written(10);
-    REQUIRE(win_recv.get_off()+sizeof(uint64_t) == off);
+    REQUIRE(win_recv_off+sizeof(uint64_t) == off);
     sn_pair[0]->SignalPeer(off, 10);
     for (int i = 0; i < 255; ++i) {
       REQUIRE(sender.canWrite());

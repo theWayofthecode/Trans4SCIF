@@ -19,7 +19,10 @@
 #include <iostream>
 #include "scifnode.h"
 #include "virt_circbuf.h"
+#include "ctl_messages.h"
 #include "circbuf.h"
+#include "rmarecordsreader.h"
+#include "rmarecordswriter.h"
 #include "trans4scif.h"
 
 namespace t4s {
@@ -27,16 +30,13 @@ namespace t4s {
 class HBSocket : public Socket {
  private:
   ScifNode sn_;
-  Circbuf recvbuf_;
-  std::unique_ptr<Circbuf> sendbuf_;
-
-  // Remote (peer) receive buffer. It is virtual in the sense
-  // that it is not backed up by memory but used only for the logistics.
-  std::unique_ptr<VirtCircbuf> rem_recvbuf_;
+  RMAWindow recvbuf_;
+  RMAWindow sendbuf_;
+  RMAId peer_recvbuf_;
+  std::unique_ptr<RMARecordsWriter> sendrecs_;
+  std::unique_ptr<RMARecordsReader> recvrecs_;
 
   void Init();
-  void GetRemRecvbufNotifs();
-  void UpdateRecvbufSpace();
 
  public:
 

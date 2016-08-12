@@ -21,5 +21,4 @@ TEST_CASE("Test packing/unpacking of RMAId ctl messages", "[ctl_messages]") {
   t4s::RMAId id = t4s::UnpackRMAIdMsg(v);
   REQUIRE(id.off == 3);
   REQUIRE(id.size == 4);
-  REQUIRE(sizeof(t4s::RMAId) == v.size());
 }

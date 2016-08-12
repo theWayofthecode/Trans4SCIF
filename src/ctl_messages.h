@@ -30,7 +30,6 @@ struct RMAId {
 
 std::vector<uint8_t> PackRMAIdMsg(RMAId osp);
 
-RMAId UnpackRMAIdMsg(std::vector<uint8_t> msg);
-#endif
-
+RMAId UnpackRMAIdMsg(std::vector<uint8_t> &msg);
 }
+#endif
