@@ -3,7 +3,6 @@ set(TEST_SOURCE_FILES
         test_util.cpp
         test_ctl_messages.cpp
         test_scifnode.cpp
-        test_circbuf.cpp
         test_rmarecords.cpp
         test_hbsocket.cpp
         main.cpp)

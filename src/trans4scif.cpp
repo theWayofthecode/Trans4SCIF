@@ -40,16 +40,16 @@ Socket* Listen(uint16_t listening_port) {
   return new HBSocket(listening_port);
 }
 
-Socket* SocketFromEpd(scif_epd_t e) {
-  ScifEpd epd(e);
-  return new HBSocket(epd);
-}
-
-std::future<Socket*> SocketFromEpdAsync(scif_epd_t e) {
-  return std::async(std::launch::async, [e]() -> Socket* {
-    ScifEpd epd(e);
-    return new HBSocket(epd);
-  });
-}
+  //Socket* SocketFromEpd(scif_epd_t e) {
+  //ScifEpd epd(e);
+  //return new HBSocket(epd);
+  //}
+  //
+  //std::future<Socket*> SocketFromEpdAsync(scif_epd_t e) {
+  //return std::async(std::launch::async, [e]() -> Socket* {
+  //ScifEpd epd(e);
+  //return new HBSocket(epd);
+  //});
+  //}
 
 }

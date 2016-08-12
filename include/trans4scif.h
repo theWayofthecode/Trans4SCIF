@@ -15,7 +15,6 @@
 #define _TRANS4SCIF_TRANS4SCIF_H_
 
 #include <vector>
-#include <future>
 #include <scif.h>
 
 namespace t4s {
@@ -38,8 +37,8 @@ Socket* Listen(uint16_t listening_port);
 
 // Get a Socket from a connected scif_epd_t
 // TODO: The Sockets from raw scif_epd_ts should be deprecated because of scif_send/scif_recv interference
-Socket* SocketFromEpd(scif_epd_t epd);
-std::future<Socket*> SocketFromEpdAsync(scif_epd_t epd);
+//Socket* SocketFromEpd(scif_epd_t epd);
+//std::future<Socket*> SocketFromEpdAsync(scif_epd_t epd);
 
 }
 #endif //_TRANS4SCIF_TRANS4SCIF_H_

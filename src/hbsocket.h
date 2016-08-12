@@ -18,9 +18,7 @@
 #include <cstdint>
 #include <iostream>
 #include "scifnode.h"
-#include "virt_circbuf.h"
 #include "ctl_messages.h"
-#include "circbuf.h"
 #include "rmarecordsreader.h"
 #include "rmarecordswriter.h"
 #include "trans4scif.h"

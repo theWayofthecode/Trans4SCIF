@@ -23,13 +23,13 @@ include_directories(
         "${PROJECT_SOURCE_DIR}/include"
 )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
 
 add_subdirectory(src)
-add_subdirectory(test)
+#add_subdirectory(test)
 
 # Testing
-enable_testing()
+#enable_testing()
 add_test(version test/main_test "Test version")
 add_test(util test/main_test [util])
 add_test(ctl_messages test/main_test [ctl_messages])

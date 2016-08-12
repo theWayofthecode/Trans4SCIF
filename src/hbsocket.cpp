@@ -16,12 +16,12 @@
 #include <scif.h>
 #include <cassert>
 #include <cstring>
+#include <thread>
 #include <iostream>
 #include <sstream>
 #include <chrono>
 #include <ctime>
 #include <stdexcept>
-#include <thread>
 #include <sys/types.h>
 #include "trans4scif_config.h"
 #include "rmawindow.h"
@@ -106,10 +106,8 @@ std::size_t HBSocket::Send(const uint8_t *msg_it, std::size_t msg_size) {
                                         CACHELINE_SIZE);
   std::size_t to_write = std::min(space, msg_size);
   assert(to_write > 0);
-  //  auto start = hrclock::now();
-    memcpy(static_cast<uint8_t *>(sendbuf_.get_mem())+buf_rec.start, msg_it, to_write);
-  //  auto end = hrclock::now();
-  //  std::cout << "Send:memcpy: [" << cast_microseconds(end - start).count() << "] ";
+  void * __restrict dest = static_cast<void * __restrict>(sendbuf_.get_mem())+buf_rec.start;
+  memcpy(dest, msg_it, to_write);
   sn_.WriteMsg(peer_recvbuf_.off+buf_rec.start, sendbuf_.get_off()+buf_rec.start,
                ROUND_TO_BOUNDARY(to_write, CACHELINE_SIZE));
   uint64_t sigval = to_write + buf_rec.start;
@@ -125,10 +123,9 @@ std::size_t HBSocket::Recv(uint8_t *data, std::size_t data_size) {
   auto wr_rec = recvrecs_->getWrRec();
   assert (wr_rec.end > wr_rec.start);
   std::size_t to_read = std::min(wr_rec.end-wr_rec.start, data_size);
-  // auto start = hrclock::now();
-   memcpy(data, static_cast<uint8_t *>(recvbuf_.get_mem())+wr_rec.start, to_read);
-  // auto end = hrclock::now();
-  // std::cout << "Recv:memcpy[" << to_read << "]: [" << cast_microseconds(end - start).count() << "] ";
+  void * __restrict dest = data;
+  void * __restrict src = static_cast<void * __restrict>(recvbuf_.get_mem())+wr_rec.start;
+  memcpy(data, src, to_read);
   recvrecs_->read(to_read);
   return to_read + Recv(data+to_read, data_size-to_read);
 }
