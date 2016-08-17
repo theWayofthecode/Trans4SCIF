@@ -30,12 +30,11 @@ class ScifEpd {
   scif_epd_t epd_;
  public:
   ScifEpd() {
-    if ((epd_ = scif_open()) == SCIF_OPEN_FAILED) {
+    if ((epd_ = scif_open()) == SCIF_OPEN_FAILED)
       throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-    }
   }
 
-  explicit ScifEpd(scif_epd_t e) : epd_(e) {}
+  explicit ScifEpd(scif_epd_t &e) : epd_(e) { e = SCIF_OPEN_FAILED; }
 
 // Move constructor and assignment
   ScifEpd(ScifEpd &&e) : epd_(e.epd_) {
@@ -45,8 +44,7 @@ class ScifEpd {
   ScifEpd &operator=(ScifEpd &&e) {
     assert(e.epd_ != SCIF_OPEN_FAILED);
     this->~ScifEpd();
-    epd_ = e.epd_;
-    e.epd_ = SCIF_OPEN_FAILED;
+    epd_ = e.epd_; e.epd_ = SCIF_OPEN_FAILED;
     return *this;
   }
 

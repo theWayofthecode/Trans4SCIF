@@ -64,28 +64,28 @@ std::size_t ScifNode::transmission(int(*trans_prim)(scif_epd_t, void *, int, int
   return std::distance(start, it);
 }
 
-std::size_t ScifNode::SendMsg(std::vector<uint8_t> &payload) {
+std::size_t ScifNode::sendMsg(std::vector<uint8_t> &payload) {
   return transmission(scif_send, payload.begin(), payload.end());
 }
 
-std::vector<uint8_t> ScifNode::RecvMsg(std::size_t size) {
+std::vector<uint8_t> ScifNode::recvMsg(std::size_t size) {
   std::vector<uint8_t> payload(size);
   auto bytes_recv = transmission(scif_recv, payload.begin(), payload.end());
   assert(size == bytes_recv);
   return payload;
 }
 
-void ScifNode::WriteMsg(off_t dest, off_t src, std::size_t len) {
+void ScifNode::writeMsg(off_t dest, off_t src, std::size_t len) {
   if (scif_writeto(epd_.get(), src, len, dest, 0) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 }
 
-void ScifNode::SignalPeer(off_t dest, std::uint64_t val) {
+void ScifNode::signalPeer(off_t dest, std::uint64_t val) {
   if (scif_fence_signal(epd_.get(), 0, 0, dest, val, SCIF_FENCE_INIT_SELF | SCIF_SIGNAL_REMOTE) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 }
 
-bool ScifNode::HasRecvMsg() {
+bool ScifNode::hasRecvMsg() {
   struct scif_pollepd pepd;
   pepd.epd = epd_.get();
   pepd.events = SCIF_POLLIN;

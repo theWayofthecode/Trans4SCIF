@@ -3,7 +3,7 @@ project(trans4scif)
 
 # Configuration
 set (TRANS4SCIF_VERSION_MAJOR 1)
-set(TRANS4SCIF_VERSION_MINOR 0)
+set(TRANS4SCIF_VERSION_MINOR 1)
 
 if (DEFINED ENV{T4S_RECV_BUF_SIZE})
     message("RECV_BUF_SIZE = $ENV{T4S_RECV_BUF_SIZE} * PAGE_SIZE")
@@ -26,17 +26,7 @@ include_directories(
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
 
 add_subdirectory(src)
-#add_subdirectory(test)
-
-# Testing
-#enable_testing()
-add_test(version test/main_test "Test version")
-add_test(util test/main_test [util])
-add_test(ctl_messages test/main_test [ctl_messages])
-add_test(scif_node test/main_test [scifnode])
-add_test(circbuf test/main_test [virt_circbuf], [circbuf])
-add_test(hbsocket test/main_test [hbsocket])
-add_test(trans4scif test/main_test [trans4scif])
+add_subdirectory(test)
 
 # Installation
 install(FILES include/trans4scif.h DESTINATION include)

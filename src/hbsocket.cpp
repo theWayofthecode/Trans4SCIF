@@ -29,19 +29,12 @@
 
 namespace t4s {
 
-using hrclock = std::chrono::high_resolution_clock;
-
-template<typename DurationType>
-inline std::chrono::microseconds cast_microseconds(DurationType d) {
-  return std::chrono::duration_cast<std::chrono::microseconds>(d);
-}
-
-void HBSocket::Init() {
-  RMAWindow buf_win = sn_.CreateRMAWindow(PAGE_SIZE, SCIF_PROT_READ | SCIF_PROT_WRITE);
-  RMAWindow wr_win = sn_.CreateRMAWindow(WR_WIN_SIZE*PAGE_SIZE, SCIF_PROT_READ | SCIF_PROT_WRITE);
+void HBSocket::init() {
+  RMAWindow buf_win = sn_.createRMAWindow(PAGE_SIZE, SCIF_PROT_READ | SCIF_PROT_WRITE);
+  RMAWindow wr_win = sn_.createRMAWindow(WR_WIN_SIZE*PAGE_SIZE, SCIF_PROT_READ | SCIF_PROT_WRITE);
   std::fill_n(static_cast<Record *>(wr_win.get_mem()), wr_win.get_len()/sizeof(Record), inval_rec);
 
-  // Send the offsets to the peer
+  // send the offsets to the peer
   std::vector<uint8_t> rmaids_msg;
   rmaids_msg.reserve(3*sizeof(RMAId));
 
@@ -56,10 +49,10 @@ void HBSocket::Init() {
   RMAId recvbuf_id{recvbuf_.get_off(), recvbuf_.get_len()};
   std::vector<uint8_t> recvbuf_msg(PackRMAIdMsg(recvbuf_id));
   rmaids_msg.insert(rmaids_msg.end(), recvbuf_msg.begin(), recvbuf_msg.end());
-  sn_.SendMsg(rmaids_msg);
+  sn_.sendMsg(rmaids_msg);
 
   // Get the peer node's offsets
-  rmaids_msg = sn_.RecvMsg(3*sizeof(RMAId));
+  rmaids_msg = sn_.recvMsg(3*sizeof(RMAId));
   RMAId peer_buf_id(UnpackRMAIdMsg(rmaids_msg));
   RMAId peer_wr_id(UnpackRMAIdMsg(rmaids_msg));
   peer_recvbuf_ = UnpackRMAIdMsg(rmaids_msg);
@@ -78,26 +71,26 @@ void HBSocket::Init() {
 
 HBSocket::HBSocket(uint16_t target_node_id, uint16_t target_port) :
     sn_(target_node_id, target_port),
-    recvbuf_(sn_.CreateRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
-    sendbuf_(sn_.CreateRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
-  Init();
+    recvbuf_(sn_.createRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
+    sendbuf_(sn_.createRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
+  init();
 }
 
 HBSocket::HBSocket(uint16_t listening_port) :
     sn_(listening_port),
-    recvbuf_(sn_.CreateRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
-    sendbuf_(sn_.CreateRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
-  Init();
+    recvbuf_(sn_.createRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
+    sendbuf_(sn_.createRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
+  init();
 }
 
 HBSocket::HBSocket(ScifEpd &epd) :
     sn_(epd),
-    recvbuf_(sn_.CreateRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
-    sendbuf_(sn_.CreateRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
-  Init();
+    recvbuf_(sn_.createRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
+    sendbuf_(sn_.createRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
+  init();
 }
 
-std::size_t HBSocket::Send(const uint8_t *msg_it, std::size_t msg_size) {
+std::size_t HBSocket::send(const uint8_t *msg_it, std::size_t msg_size) {
   if (!sendrecs_->canWrite() || !msg_size)
     return 0;
   auto buf_rec = sendrecs_->getBufRec();
@@ -108,16 +101,16 @@ std::size_t HBSocket::Send(const uint8_t *msg_it, std::size_t msg_size) {
   assert(to_write > 0);
   void * __restrict dest = static_cast<void * __restrict>(sendbuf_.get_mem())+buf_rec.start;
   memcpy(dest, msg_it, to_write);
-  sn_.WriteMsg(peer_recvbuf_.off+buf_rec.start, sendbuf_.get_off()+buf_rec.start,
+  sn_.writeMsg(peer_recvbuf_.off+buf_rec.start, sendbuf_.get_off()+buf_rec.start,
                ROUND_TO_BOUNDARY(to_write, CACHELINE_SIZE));
   uint64_t sigval = to_write + buf_rec.start;
   off_t sigoff = sendrecs_->written(to_write);
-  sn_.SignalPeer(sigoff, sigval);
-  return to_write + Send(msg_it+to_write, msg_size-to_write);
+  sn_.signalPeer(sigoff, sigval);
+  return to_write + send(msg_it+to_write, msg_size-to_write);
 }
 
 //  TODO: Consider implementing the blocking alternatives as well
-std::size_t HBSocket::Recv(uint8_t *data, std::size_t data_size) {
+std::size_t HBSocket::recv(uint8_t *data, std::size_t data_size) {
   if (!recvrecs_->canRead() || !data_size)
     return 0;
   auto wr_rec = recvrecs_->getWrRec();
@@ -127,7 +120,7 @@ std::size_t HBSocket::Recv(uint8_t *data, std::size_t data_size) {
   void * __restrict src = static_cast<void * __restrict>(recvbuf_.get_mem())+wr_rec.start;
   memcpy(data, src, to_read);
   recvrecs_->read(to_read);
-  return to_read + Recv(data+to_read, data_size-to_read);
+  return to_read + recv(data+to_read, data_size-to_read);
 }
 
 }

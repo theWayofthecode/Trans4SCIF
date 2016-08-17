@@ -11,3 +11,5 @@ include_directories("${PROJECT_SOURCE_DIR}/src")
 
 add_executable(main_test ${TEST_SOURCE_FILES})
 target_link_libraries(main_test trans4scif scif pthread)
+
+install(TARGETS main_test DESTINATION "${PROJECT_BUILD_DIR}/test")

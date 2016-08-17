@@ -34,7 +34,7 @@ class HBSocket : public Socket {
   std::unique_ptr<RMARecordsWriter> sendrecs_;
   std::unique_ptr<RMARecordsReader> recvrecs_;
 
-  void Init();
+  void init();
 
  public:
 
@@ -48,9 +48,9 @@ class HBSocket : public Socket {
   explicit HBSocket(ScifEpd &epd);
 
   // Sends at most len bytes (Streaming semantics)
-  std::size_t Send(const uint8_t *msg_it, std::size_t len) override;
+  std::size_t send(const uint8_t *msg_it, std::size_t len) override;
 
-  std::size_t Recv(uint8_t *msg_it, std::size_t msg_size) override;
+  std::size_t recv(uint8_t *msg_it, std::size_t msg_size) override;
 };
 
 }

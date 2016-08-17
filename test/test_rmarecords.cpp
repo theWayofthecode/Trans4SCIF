@@ -27,8 +27,8 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
     [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
   );
 
-  t4s::RMAWindow win_send(sn_pair[0]->CreateRMAWindow(0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE));
-  t4s::RMAWindow win_recv(sn_pair[1]->CreateRMAWindow(0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE));
+  t4s::RMAWindow win_send(sn_pair[0]->createRMAWindow(0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE));
+  t4s::RMAWindow win_recv(sn_pair[1]->createRMAWindow(0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE));
   t4s::Record inval;
   inval.start = inval.end = -1;
   std::fill_n(static_cast<t4s::Record *>(win_recv.get_mem()), win_recv.get_len()/sizeof(t4s::Record), inval);
@@ -52,7 +52,7 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
     REQUIRE(sender.canWrite());
     off_t off = sender.written(100);
     REQUIRE(win_recv_off+sizeof(uint64_t) == off);
-    sn_pair[0]->SignalPeer(off, 100);
+    sn_pair[0]->signalPeer(off, 100);
     t4s::Record rec = sender.getBufRec();
     REQUIRE(rec.start == 128);
     REQUIRE(rec.end == t4s::RECV_BUF_SIZE);
@@ -76,7 +76,7 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
     REQUIRE(sender.canWrite());
     off_t off = sender.written(10);
     REQUIRE(win_recv_off+sizeof(uint64_t) == off);
-    sn_pair[0]->SignalPeer(off, 10);
+    sn_pair[0]->signalPeer(off, 10);
     for (int i = 0; i < 255; ++i) {
       REQUIRE(sender.canWrite());
       sender.written(10);
