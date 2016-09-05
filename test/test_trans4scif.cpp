@@ -14,8 +14,8 @@
 #include <system_error>
 #include <cassert>
 #include <algorithm>
-#include <future>
 #include <random>
+#include <future>
 #include <scif.h>
 #include "catch.hpp"
 #include "trans4scif.h"
@@ -58,101 +58,56 @@ scif_epd_t plain_scif_listen(int listening_port) {
   return acc_epd_t;
 }
 
-void hello_hi (std::shared_ptr<t4s::Socket> s0, std::shared_ptr<t4s::Socket> s1) {
-  std::vector<uint8_t> send_msg{'h', 'e', 'l', 'l', 'o'};
-  REQUIRE(send_msg.size() == s0->Send(send_msg.data(), send_msg.size()));
-  std::vector<uint8_t> recv_msg = s1->Recv();
-  REQUIRE(recv_msg == send_msg);
-
-  std::vector<uint8_t> reply_msg{'h', 'i'};
-  REQUIRE(reply_msg.size() == s1->Send(reply_msg.data(), reply_msg.size()));
-  std::vector<uint8_t> recv_reply = s0->Recv();
-  REQUIRE(recv_reply == reply_msg);
-}
-
 TEST_CASE("Test version", "[trans4scif]") {
   std::cerr << t4s::trans4scif_config();
 }
 
-TEST_CASE("Send one byte", "[trans4scif]") {
-  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::Listen, t4s::Connect);
+TEST_CASE("send one byte", "[trans4scif]") {
+  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::listeningSocket, t4s::connectingSocket);
   uint8_t s = 'x';
   uint8_t r = 0;
-  REQUIRE(1 == s_pair[0]->Send(&s, 1));
-  REQUIRE(1 == s_pair[1]->Recv(&r, 1));
+  REQUIRE(1 == s_pair[0]->send(&s, 1));
+  REQUIRE(1 == s_pair[1]->recv(&r, 1));
   REQUIRE(r == 'x');
 }
 
-TEST_CASE("Split wrap around", "[trans4scif]") {
+TEST_CASE("send and recv 0 bytes", "[trans4scif]") {
   auto s_pair = MakeConnectedNodes<std::shared_ptr < t4s::Socket>>
-  (t4s::Listen, t4s::Connect);
-
-  //  wrap around the recv buffer
-  std::size_t chunk_size = 128;
-  uint8_t fill_value = 0xA;
-  std::vector <uint8_t> send_msg(t4s::RECV_BUF_SIZE);
-  std::vector <uint8_t> recv_msg(t4s::RECV_BUF_SIZE);
-  std::fill_n(send_msg.begin(), t4s::RECV_BUF_SIZE, fill_value);
-  std::size_t almost_filled_sz = t4s::RECV_BUF_SIZE - 128;
-
-  REQUIRE( almost_filled_sz == s_pair[0]->Send(send_msg.data(), almost_filled_sz) );
-  REQUIRE( almost_filled_sz == s_pair[1]->Recv(recv_msg.data(), almost_filled_sz) );
-  REQUIRE( std::all_of(recv_msg.begin(), recv_msg.begin() + almost_filled_sz,
-           [fill_value](uint8_t v){return v == fill_value;}) );
-  REQUIRE( chunk_size == s_pair[0]->Send(send_msg.data(), chunk_size) );
-  REQUIRE( chunk_size == s_pair[1]->Recv(recv_msg.data(), chunk_size) );
-  REQUIRE( std::all_of(recv_msg.begin(), recv_msg.begin() + chunk_size,
-           [fill_value](uint8_t v){return v == fill_value;}) );
-}
-
-TEST_CASE("Send and Recv 0 bytes", "[trans4scif]") {
-  auto s_pair = MakeConnectedNodes<std::shared_ptr < t4s::Socket>>
-  (t4s::Listen, t4s::Connect);
-  REQUIRE(0 == s_pair[0]->Send(nullptr, 0));
-  REQUIRE(0 == s_pair[1]->Recv(nullptr, 0));
-}
-
-TEST_CASE("Test Socket with hello_hi", "[trans4scif]") {
-  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::Listen, t4s::Connect);
-  hello_hi (s_pair[0], s_pair[1]);
-}
-
-TEST_CASE("Test SocketFromEpd", "[trans4scif]") {
-  auto epd_pair = MakeConnectedNodes<scif_epd_t>(plain_scif_listen, plain_scif_connect);
-
-  SECTION("Synchronous") {
-    auto s1_fut = std::async(std::launch::async, t4s::SocketFromEpd, epd_pair[1]);
-    std::shared_ptr<t4s::Socket> s0(t4s::SocketFromEpd(epd_pair[0]));
-    std::shared_ptr<t4s::Socket> s1(s1_fut.get());
-    hello_hi(s0, s1);
-  }
-
-  SECTION("Asynchronous") {
-    auto s0_fut = t4s::SocketFromEpdAsync(epd_pair[0]);
-    auto s1_fut = t4s::SocketFromEpdAsync(epd_pair[1]);
-    std::shared_ptr<t4s::Socket> s0(s0_fut.get());
-    std::shared_ptr<t4s::Socket> s1(s1_fut.get());
-    hello_hi(s0, s1);
-  }
+  (t4s::listeningSocket, t4s::connectingSocket);
+  REQUIRE(0 == s_pair[0]->send(nullptr, 0));
+  REQUIRE(0 == s_pair[1]->recv(nullptr, 0));
 }
 
 TEST_CASE("Random data transfers", "[trans4scif]") {
-  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::Listen, t4s::Connect);
+  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::listeningSocket, t4s::connectingSocket);
   std::uniform_int_distribution<> dist(0, t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE - 1);
   std::knuth_b eng(0);
 
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < 10; ++i) {
     int sz = dist(eng);
     std::vector<uint8_t> sbuf(sz);
     std::for_each(sbuf.begin(), sbuf.end(), [&dist, &eng](uint8_t &n){ n = dist(eng) % 0xff; });
     std::vector<uint8_t> rbuf(sz);
-    REQUIRE( sbuf.size() == s_pair[0]->Send(sbuf.data(), sbuf.size()) );
-    REQUIRE( rbuf.size() == s_pair[1]->Recv(rbuf.data(), rbuf.size()) );
+    INFO("i: " << i << " sz: " << sz);
+    REQUIRE( sbuf.size() == s_pair[0]->send(sbuf.data(), sbuf.size()) );
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    REQUIRE( rbuf.size() == s_pair[1]->recv(rbuf.data(), rbuf.size()) );
     REQUIRE( sbuf == rbuf );
   }
-  //Verify if the recv buffer is
-  std::vector<uint8_t> sbuf(t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE);
-  std::vector<uint8_t> rbuf(t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE);
-  REQUIRE( sbuf.size() == s_pair[0]->Send(sbuf.data(), sbuf.size()) );
-  REQUIRE( rbuf.size() == s_pair[1]->Recv(rbuf.data(), rbuf.size()) );
+}
+
+TEST_CASE("epdSocket test", "[trans4scif]") {
+  auto s_pair = MakeConnectedNodes<scif_epd_t>(plain_scif_listen, plain_scif_connect);
+  uint8_t s = 'x';
+  uint8_t r = 0;
+
+  auto sn0_fut = std::async(std::launch::async, [&s_pair]() -> t4s::Socket * {
+      return t4s::epdSocket(s_pair[0]);
+    });
+  std::unique_ptr<t4s::Socket> s1(t4s::epdSocket(s_pair[1]));
+  std::unique_ptr<t4s::Socket> s0(sn0_fut.get());
+
+  REQUIRE(1 == s0->send(&s, 1));
+  REQUIRE(1 == s1->recv(&r, 1));
+  REQUIRE(r == 'x');
 }

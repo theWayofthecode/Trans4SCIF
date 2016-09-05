@@ -43,11 +43,18 @@ TEST_CASE("Serializing/deserializing", "[util]") {
     t4s::vec_to_inttype_le(v, out);
     REQUIRE(in == out);
   }
+
+  SECTION("off_t with return value versions") {
+    off_t off=0x1555;
+    auto v = t4s::inttype_to_vec_le(off);
+    REQUIRE(off == t4s::vec_to_inttype_le<off_t>(v));
+  }
 }
 
 TEST_CASE("ROUND_TO_BOUNDARY macro test", "[util]") {
 
   REQUIRE(0X40 == ROUND_TO_BOUNDARY(0x40, t4s::CACHELINE_SIZE));
+  REQUIRE(t4s::CACHELINE_SIZE == ROUND_TO_BOUNDARY(1, t4s::CACHELINE_SIZE));
   REQUIRE(0X80 == ROUND_TO_BOUNDARY(0x41, t4s::CACHELINE_SIZE));
   std::size_t sz = 0x453;
   sz = ROUND_TO_BOUNDARY(sz, t4s::PAGE_SIZE);
@@ -56,4 +63,9 @@ TEST_CASE("ROUND_TO_BOUNDARY macro test", "[util]") {
   REQUIRE(0X2000 == sz);
   REQUIRE(0X1000 == ROUND_TO_BOUNDARY(1, t4s::PAGE_SIZE));
   REQUIRE(0 == ROUND_TO_BOUNDARY(0, t4s::PAGE_SIZE));
+
+  SECTION("Round towards minus infiniti") {
+    REQUIRE(0x40 == ROUND_TO_BOUNDARY(0X40-(t4s::CACHELINE_SIZE-1), t4s::CACHELINE_SIZE));
+    REQUIRE(0x40 == ROUND_TO_BOUNDARY(0X58-(t4s::CACHELINE_SIZE-1), t4s::CACHELINE_SIZE));
+  }
 }

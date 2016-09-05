@@ -18,8 +18,9 @@
 #include <cstdint>
 #include <iostream>
 #include "scifnode.h"
-#include "virt_circbuf.h"
-#include "circbuf.h"
+#include "ctl_messages.h"
+#include "rmarecordsreader.h"
+#include "rmarecordswriter.h"
 #include "trans4scif.h"
 
 namespace t4s {
@@ -27,16 +28,13 @@ namespace t4s {
 class HBSocket : public Socket {
  private:
   ScifNode sn_;
-  Circbuf recvbuf_;
-  std::unique_ptr<Circbuf> sendbuf_;
+  RMAWindow recvbuf_;
+  RMAWindow sendbuf_;
+  RMAId peer_recvbuf_;
+  std::unique_ptr<RMARecordsWriter> sendrecs_;
+  std::unique_ptr<RMARecordsReader> recvrecs_;
 
-  // Remote (peer) receive buffer. It is virtual in the sense
-  // that it is not backed up by memory but used only for the logistics.
-  std::unique_ptr<VirtCircbuf> rem_recvbuf_;
-
-  void Init();
-  void GetRemRecvbufNotifs();
-  void UpdateRecvbufSpace();
+  void init();
 
  public:
 
@@ -50,11 +48,11 @@ class HBSocket : public Socket {
   explicit HBSocket(ScifEpd &epd);
 
   // Sends at most len bytes (Streaming semantics)
-  std::size_t Send(const uint8_t *msg_it, std::size_t len) override;
-
-  std::size_t Recv(uint8_t *msg_it, std::size_t msg_size) override;
-
-  std::vector<uint8_t> Recv() override;
+  std::size_t send(const uint8_t *data, std::size_t data_size) override;
+  std::size_t recv(uint8_t *msg_it, std::size_t msg_size) override;
+  bool canSend() override { return sendrecs_->canWrite(); }
+  bool canRecv() override { return recvrecs_->canRead(); }
+  Buffer getSendBuffer() override;
 };
 
 }

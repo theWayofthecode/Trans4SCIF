@@ -36,11 +36,9 @@ class RMAWindow {
 
   //   Copy is prohibited.
   RMAWindow(const RMAWindow &w) = delete;
-
   RMAWindow &operator=(const RMAWindow &w) = delete;
 
   RMAWindow(RMAWindow &&w);
-
   RMAWindow &operator=(RMAWindow &&w);
 
   ~RMAWindow();
@@ -50,6 +48,8 @@ class RMAWindow {
   off_t get_off() { return off_; }
 
   std::size_t get_len() { return len_; }
+
+  bool in_window(const void *p) { return (p >= mem_) && (p < mem_+len_); }
 };
 
 }
