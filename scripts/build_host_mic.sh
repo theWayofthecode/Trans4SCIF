@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e 
+
 if [ ! -d "x86_64" ]; then
   mkdir x86_64
   cd x86_64
