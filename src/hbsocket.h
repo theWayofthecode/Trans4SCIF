@@ -48,9 +48,11 @@ class HBSocket : public Socket {
   explicit HBSocket(ScifEpd &epd);
 
   // Sends at most len bytes (Streaming semantics)
-  std::size_t send(const uint8_t *msg_it, std::size_t len) override;
-
+  std::size_t send(const uint8_t *data, std::size_t data_size) override;
   std::size_t recv(uint8_t *msg_it, std::size_t msg_size) override;
+  bool canSend() override { return sendrecs_->canWrite(); }
+  bool canRecv() override { return recvrecs_->canRead(); }
+  Buffer getSendBuffer() override;
 };
 
 }

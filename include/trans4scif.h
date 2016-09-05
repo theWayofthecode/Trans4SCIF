@@ -14,16 +14,26 @@
 #ifndef _TRANS4SCIF_TRANS4SCIF_H_
 #define _TRANS4SCIF_TRANS4SCIF_H_
 
+#include <scif.h>
+
 namespace t4s {
 
 // Return the version of the library in string
 std::string trans4scif_config();
+
+struct Buffer {
+  void *base;
+  std::size_t space;
+};
 
 class Socket {
  public:
   virtual ~Socket() {};
   virtual std::size_t send(const uint8_t *msg, std::size_t msg_size) = 0;
   virtual std::size_t recv(uint8_t *msg, std::size_t msg_size) = 0;
+  virtual bool canSend() = 0;
+  virtual bool canRecv() = 0;
+  virtual Buffer getSendBuffer() = 0;
 };
 
 // Construct a connecting node

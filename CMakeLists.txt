@@ -3,14 +3,14 @@ project(trans4scif)
 
 # Configuration
 set (TRANS4SCIF_VERSION_MAJOR 1)
-set(TRANS4SCIF_VERSION_MINOR 1)
+set(TRANS4SCIF_VERSION_MINOR 2)
 
 if (DEFINED ENV{T4S_RECV_BUF_SIZE})
     message("RECV_BUF_SIZE = $ENV{T4S_RECV_BUF_SIZE} * PAGE_SIZE")
     set(RECV_BUF_SIZE "$ENV{T4S_RECV_BUF_SIZE} * PAGE_SIZE")
 else ()
-    message("RECV_BUF_SIZE = 8 * PAGE_SIZE")
-    set(RECV_BUF_SIZE "8 * PAGE_SIZE")
+    message("RECV_BUF_SIZE = 1024 * PAGE_SIZE")
+    set(RECV_BUF_SIZE "1024 * PAGE_SIZE")
 endif ()
 
 configure_file (
@@ -23,10 +23,10 @@ include_directories(
         "${PROJECT_SOURCE_DIR}/include"
 )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(src)
-add_subdirectory(test)
+#add_subdirectory(test)
 
 # Installation
 install(FILES include/trans4scif.h DESTINATION include)

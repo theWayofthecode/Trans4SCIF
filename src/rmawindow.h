@@ -48,6 +48,8 @@ class RMAWindow {
   off_t get_off() { return off_; }
 
   std::size_t get_len() { return len_; }
+
+  bool in_window(const void *p) { return (p >= mem_) && (p < mem_+len_); }
 };
 
 }

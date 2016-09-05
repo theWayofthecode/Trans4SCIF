@@ -90,23 +90,35 @@ HBSocket::HBSocket(ScifEpd &epd) :
   init();
 }
 
-std::size_t HBSocket::send(const uint8_t *msg_it, std::size_t msg_size) {
-  if (!sendrecs_->canWrite() || !msg_size)
+Buffer HBSocket::getSendBuffer() {
+  auto buf_rec = sendrecs_->getBufRec();
+  //round towards minus infinity
+  std::size_t space = ROUND_TO_BOUNDARY((buf_rec.end-buf_rec.start)-(CACHELINE_SIZE-1),
+                                        CACHELINE_SIZE);
+  return Buffer{sendbuf_.get_mem()+buf_rec.start, space};
+}
+
+std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
+  if (!data_size || !sendrecs_->canWrite() )
     return 0;
   auto buf_rec = sendrecs_->getBufRec();
   //round towards minus infinity
   std::size_t space = ROUND_TO_BOUNDARY((buf_rec.end-buf_rec.start)-(CACHELINE_SIZE-1),
                                         CACHELINE_SIZE);
-  std::size_t to_write = std::min(space, msg_size);
+  std::size_t to_write = std::min(space, data_size);
   assert(to_write > 0);
-  void * __restrict dest = static_cast<void * __restrict>(sendbuf_.get_mem())+buf_rec.start;
-  memcpy(dest, msg_it, to_write);
+  if (!sendbuf_.in_window(static_cast<const uint8_t *>(data))) {
+    void *__restrict dest = static_cast<void *__restrict>(sendbuf_.get_mem()) + buf_rec.start;
+    memcpy(dest, data, to_write);
+  } else {
+    assert(to_write == data_size);
+  }
   sn_.writeMsg(peer_recvbuf_.off+buf_rec.start, sendbuf_.get_off()+buf_rec.start,
                ROUND_TO_BOUNDARY(to_write, CACHELINE_SIZE));
   uint64_t sigval = to_write + buf_rec.start;
   off_t sigoff = sendrecs_->written(to_write);
   sn_.signalPeer(sigoff, sigval);
-  return to_write + send(msg_it+to_write, msg_size-to_write);
+  return to_write + send(data+to_write, data_size-to_write);
 }
 
 //  TODO: Consider implementing the blocking alternatives as well
