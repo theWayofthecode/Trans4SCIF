@@ -49,6 +49,7 @@ Mmapmem &Mmapmem::operator=(Mmapmem &&m) {
 }
 
 Mmapmem::~Mmapmem() {
+  //TODO:
 //  if (addr_ != nullptr) {
 //    if (scif_munmap(addr_, len_) == -1) {
 //      std::system_error e(errno, std::system_category(), __FILE__LINE__);
