@@ -38,7 +38,8 @@ Mmapmem::Mmapmem(Mmapmem &&m) :
 }
 
 Mmapmem &Mmapmem::operator=(Mmapmem &&m) {
-  this->~Mmapmem();
+  //TODO: implicit destructor call?
+  //this->~Mmapmem();
   addr_ = m.addr_;
   off_ = m.off_;
   len_ = m.len_;

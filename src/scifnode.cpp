@@ -45,33 +45,32 @@ ScifNode::ScifNode(uint16_t listening_port) {
   epd_ = ScifEpd(acc_epd_t);
 }
 
-std::size_t ScifNode::transmission(int(*trans_prim)(scif_epd_t, void *, int, int),
-                                   std::vector<uint8_t>::iterator start,
-                                   std::vector<uint8_t>::iterator end) {
-  auto it = start;
-  int i;
-  for (i = 0; i < SCIF_TRANS_RETRIES; ++i) {
-    int bytes = trans_prim(epd_.get(), &(*it), std::distance(it, end), 0);
-    if (bytes == -1)
-      throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-    std::advance(it, bytes);
-    if (std::distance(it, end) == 0)
-      break;
-    scaled_sleep(i, SCIF_TRANS_RETRIES/2, SCIF_TRANS_RETRIES - 100);
-  }
-  if (i == SCIF_TRANS_RETRIES)
-    throw std::runtime_error("scif_send/recv retries exhausted.");
-  return std::distance(start, it);
-}
-
 std::size_t ScifNode::sendMsg(std::vector<uint8_t> &payload) {
-  return transmission(scif_send, payload.begin(), payload.end());
+  int bytes_sent = 0;
+  for (auto it = payload.begin();
+       std::distance(it, payload.end());
+       std::advance(it, bytes_sent)) {
+    if (canSendMsg(SCIF_SEND_RECV_TIMOUT)) {
+      bytes_sent = scif_send(epd_.get(), &(*it), std::distance(it, payload.end()), 0);
+      if (bytes_sent == -1)
+        throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+    }
+  }
+  return payload.size();
 }
 
 std::vector<uint8_t> ScifNode::recvMsg(std::size_t size) {
   std::vector<uint8_t> payload(size);
-  auto bytes_recv = transmission(scif_recv, payload.begin(), payload.end());
-  assert(size == bytes_recv);
+  int bytes_recv = 0;
+  for (auto it = payload.begin();
+       std::distance(it, payload.end());
+       std::advance(it, bytes_recv)) {
+    if (canRecvMsg(SCIF_SEND_RECV_TIMOUT)) {
+      bytes_recv = scif_recv(epd_.get(), &(*it), std::distance(it, payload.end()), 0);
+      if (bytes_recv == -1)
+        throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+    }
+  }
   return payload;
 }
 
@@ -85,12 +84,28 @@ void ScifNode::signalPeer(off_t dest, std::uint64_t val) {
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 }
 
-bool ScifNode::hasRecvMsg() {
+bool ScifNode::canSendMsg(long timeout) {
+  struct scif_pollepd pepd;
+  pepd.epd = epd_.get();
+  pepd.events = SCIF_POLLOUT;
+  pepd.revents = 0;
+  int rc = scif_poll(&pepd, 1, timeout);
+  if (rc == 0)
+    throw std::runtime_error("canSendMsg: scif_poll: Timeout");
+  else if (rc == -1)
+    throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+  return pepd.revents == SCIF_POLLOUT;
+}
+
+bool ScifNode::canRecvMsg(long timeout) {
   struct scif_pollepd pepd;
   pepd.epd = epd_.get();
   pepd.events = SCIF_POLLIN;
   pepd.revents = 0;
-  if (scif_poll(&pepd, 1, 0) == -1)
+  int rc = scif_poll(&pepd, 1, timeout);
+  if (rc == 0)
+    throw std::runtime_error("canRecvMsg: scif_poll: Timeout");
+  else if (rc == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
   return pepd.revents == SCIF_POLLIN;
 }

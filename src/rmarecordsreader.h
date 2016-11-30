@@ -49,7 +49,8 @@ class RMARecordsReader {
     return {wr_idx_->start, wr_idx_->end};
   }
 
-  void read(std::size_t rlen);
+  // Return true if a full WrRecord was consumed
+  bool read(std::size_t rlen);
 };
 
 }

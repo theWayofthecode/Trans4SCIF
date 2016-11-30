@@ -31,7 +31,7 @@ namespace t4s {
     buf_idx_->end = RECV_BUF_SIZE;
   }
 
-  void RMARecordsReader::read(std::size_t rlen) {
+  bool RMARecordsReader::read(std::size_t rlen) {
     volatile Record *next_buf = buf_idx_ + 1;
     if (next_buf == buf_tail_)
       next_buf = buf_head_;
@@ -44,10 +44,11 @@ namespace t4s {
       if (++wr_idx_ == wr_tail_)
         wr_idx_ = wr_head_;
       next_buf->end = ROUND_TO_BOUNDARY(next_buf->end, CACHELINE_SIZE);
+      if (next_buf->end == RECV_BUF_SIZE)
+        buf_idx_ = next_buf;
+      return true;
     }
-    //OPTIMIZATION:Maybe this check can be done inside the above if,
-    //since a single transaction cannot wrap around the buffer
-    if (next_buf->end == RECV_BUF_SIZE)
-      buf_idx_ = next_buf;
+    assert(next_buf->end < RECV_BUF_SIZE);
+    return false;
   }
 }

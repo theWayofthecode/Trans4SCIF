@@ -65,8 +65,6 @@ inttype vec_to_inttype_le(const std::vector<uint8_t> &in) {
   return out;
 }
 
-void scaled_sleep(int v, int s, int m);
-
 }
 #endif
 

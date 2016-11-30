@@ -29,9 +29,6 @@ namespace t4s {
 class ScifNode {
  private:
   ScifEpd epd_;
-  std::size_t transmission(int(*trans_prim)(scif_epd_t, void *, int, int),
-                                     std::vector<uint8_t>::iterator start,
-                                     std::vector<uint8_t>::iterator end);
 
  public:
   // Construct a connecting node
@@ -41,7 +38,7 @@ class ScifNode {
   ScifNode(uint16_t listening_port);
 
   // Construct ScifNode from connected ScifEpd
- ScifNode(ScifEpd &epd) : epd_(std::move(epd)) {};
+  ScifNode(ScifEpd &epd) : epd_(std::move(epd)) {};
 
   // Move constructor and assignment
   ScifNode(ScifNode &&sn) : epd_(std::move(sn.epd_)) {};
@@ -78,8 +75,9 @@ class ScifNode {
   void signalPeer(off_t dest, std::uint64_t val);
 
 
-  // Checks whether there is data to be received by RecvMsg (i.e. the call will not block)
-  bool hasRecvMsg();
+  // Blocks till data can be sent/received or timeout (in ms) has expired
+  bool canRecvMsg(long timeout);
+  bool canSendMsg(long timeout);
 };
 
 }

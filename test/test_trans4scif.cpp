@@ -63,7 +63,8 @@ TEST_CASE("Test version", "[trans4scif]") {
 }
 
 TEST_CASE("send one byte", "[trans4scif]") {
-  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::listeningSocket, t4s::connectingSocket);
+  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>
+  (t4s::listeningSocket, t4s::connectingSocket);
   uint8_t s = 'x';
   uint8_t r = 0;
   REQUIRE(1 == s_pair[0]->send(&s, 1));
@@ -79,7 +80,8 @@ TEST_CASE("send and recv 0 bytes", "[trans4scif]") {
 }
 
 TEST_CASE("Random data transfers", "[trans4scif]") {
-  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>(t4s::listeningSocket, t4s::connectingSocket);
+  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>
+  (t4s::listeningSocket, t4s::connectingSocket);
   std::uniform_int_distribution<> dist(0, t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE - 1);
   std::knuth_b eng(0);
 
@@ -90,7 +92,6 @@ TEST_CASE("Random data transfers", "[trans4scif]") {
     std::vector<uint8_t> rbuf(sz);
     INFO("i: " << i << " sz: " << sz);
     REQUIRE( sbuf.size() == s_pair[0]->send(sbuf.data(), sbuf.size()) );
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     REQUIRE( rbuf.size() == s_pair[1]->recv(rbuf.data(), rbuf.size()) );
     REQUIRE( sbuf == rbuf );
   }
@@ -109,5 +110,19 @@ TEST_CASE("epdSocket test", "[trans4scif]") {
 
   REQUIRE(1 == s0->send(&s, 1));
   REQUIRE(1 == s1->recv(&r, 1));
+  REQUIRE(r == 'x');
+}
+
+//TODO: consider commenting in catch github for timeouts in function calls
+TEST_CASE("trans4scif->recv blocking", "[trans4scif]") {
+  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>
+  (t4s::listeningSocket, t4s::connectingSocket);
+  uint8_t r = 0;
+  std::async(std::launch::async, [&s_pair]() {
+    uint8_t s = 'x';
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    REQUIRE(1 == s_pair[0]->send(&s, 1));
+  });
+  REQUIRE(1 == s_pair[1]->recv(&r, 1));
   REQUIRE(r == 'x');
 }

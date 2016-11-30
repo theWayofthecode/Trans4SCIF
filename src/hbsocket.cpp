@@ -29,6 +29,8 @@
 
 namespace t4s {
 
+std::vector<uint8_t> HBSocket::notif{0xff};
+
 void HBSocket::init() {
   RMAWindow buf_win = sn_.createRMAWindow(PAGE_SIZE, SCIF_PROT_READ | SCIF_PROT_WRITE);
   RMAWindow wr_win = sn_.createRMAWindow(WR_WIN_SIZE*PAGE_SIZE, SCIF_PROT_READ | SCIF_PROT_WRITE);
@@ -98,6 +100,7 @@ Buffer HBSocket::getSendBuffer() {
   return Buffer{sendbuf_.get_mem()+buf_rec.start, space};
 }
 
+//TODO: What abou blocking send?
 std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
   if (!data_size || !sendrecs_->canWrite() )
     return 0;
@@ -118,20 +121,31 @@ std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
   uint64_t sigval = to_write + buf_rec.start;
   off_t sigoff = sendrecs_->written(to_write);
   sn_.signalPeer(sigoff, sigval);
+  sn_.sendMsg(notif);
   return to_write + send(data+to_write, data_size-to_write);
 }
 
-//  TODO: Consider implementing the blocking alternatives as well
 std::size_t HBSocket::recv(uint8_t *data, std::size_t data_size) {
-  if (!recvrecs_->canRead() || !data_size)
+
+  if (!data_size)
     return 0;
+
+  // If there is no any data to be read
+  // Block (then poll) till it is available
+  if (!recvrecs_->canRead()) {
+    while (!sn_.canRecvMsg(-1));
+    while (!recvrecs_->canRead());
+  }
+
   auto wr_rec = recvrecs_->getWrRec();
   assert (wr_rec.end > wr_rec.start);
   std::size_t to_read = std::min(wr_rec.end-wr_rec.start, data_size);
   void * __restrict dest = data;
   void * __restrict src = static_cast<void * __restrict>(recvbuf_.get_mem())+wr_rec.start;
   memcpy(data, src, to_read);
-  recvrecs_->read(to_read);
+  if (recvrecs_->read(to_read))
+    sn_.recvMsg(notif.size());
+
   return to_read + recv(data+to_read, data_size-to_read);
 }
 

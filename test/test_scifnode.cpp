@@ -136,8 +136,19 @@ TEST_CASE("t4s::ScifNode has_recv_msg", "[scifnode]")
 
   std::vector<uint8_t> msg(16);
   REQUIRE( sn_pair[0]->sendMsg(msg) == 16 );
-  REQUIRE( sn_pair[1]->hasRecvMsg() );
+  REQUIRE( sn_pair[1]->canRecvMsg(0) );
   std::vector<uint8_t> v = sn_pair[1]->recvMsg(16);
   REQUIRE( v.size() == 16 );
-  REQUIRE_FALSE( sn_pair[1]->hasRecvMsg() );
+  REQUIRE_THROWS( sn_pair[1]->canRecvMsg(0) );
+}
+
+TEST_CASE("Send/recv blocking", "[scifnode][long]")
+{
+  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
+      [](int port) {return new t4s::ScifNode(port);}, //listener
+      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
+  );
+  std::vector<uint8_t> msg(10000);
+  REQUIRE_THROWS( sn_pair[0]->sendMsg(msg) );
+  REQUIRE_THROWS( sn_pair[0]->recvMsg(10000) );
 }
