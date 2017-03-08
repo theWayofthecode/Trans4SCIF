@@ -38,8 +38,6 @@ Mmapmem::Mmapmem(Mmapmem &&m) :
 }
 
 Mmapmem &Mmapmem::operator=(Mmapmem &&m) {
-  //TODO: implicit destructor call?
-  //this->~Mmapmem();
   addr_ = m.addr_;
   off_ = m.off_;
   len_ = m.len_;
@@ -50,13 +48,12 @@ Mmapmem &Mmapmem::operator=(Mmapmem &&m) {
 }
 
 Mmapmem::~Mmapmem() {
-  //TODO:
-//  if (addr_ != nullptr) {
-//    if (scif_munmap(addr_, len_) == -1) {
-//      std::system_error e(errno, std::system_category(), __FILE__LINE__);
-//      std::cerr << "Warning: scif_munmap: " << e.what() << __FILE__LINE__ << std::endl;
-//    }
-//  }
+  if (addr_ != nullptr) {
+    if (scif_munmap(addr_, len_) == -1) {
+      std::system_error e(errno, std::system_category(), __FILE__LINE__);
+      std::cerr << "Warning: scif_munmap: " << e.what() << __FILE__LINE__ << std::endl;
+    }
+  }
 }
 
 }

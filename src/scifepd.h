@@ -34,7 +34,7 @@ class ScifEpd {
       throw std::system_error(errno, std::system_category(), __FILE__LINE__);
   }
 
-  explicit ScifEpd(scif_epd_t &e) : epd_(e) { e = SCIF_OPEN_FAILED; }
+  explicit ScifEpd(scif_epd_t e) : epd_(e) {}
 
 // Move constructor and assignment
   ScifEpd(ScifEpd &&e) : epd_(e.epd_) {
@@ -43,8 +43,10 @@ class ScifEpd {
 
   ScifEpd &operator=(ScifEpd &&e) {
     assert(e.epd_ != SCIF_OPEN_FAILED);
+    //TODO: explicit invocation of the destructor
     this->~ScifEpd();
-    epd_ = e.epd_; e.epd_ = SCIF_OPEN_FAILED;
+    epd_ = e.epd_;
+    e.epd_ = SCIF_OPEN_FAILED;
     return *this;
   }
 

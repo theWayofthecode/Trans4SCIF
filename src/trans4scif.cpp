@@ -28,7 +28,6 @@ std::string trans4scif_config() {
   ss << "Version=" << TRANS4SCIF_VERSION_MAJOR
      << "." << TRANS4SCIF_VERSION_MINOR << std::endl;
   ss << "RECV_BUF_SIZE=" << RECV_BUF_SIZE << "B\n";
-  ss << "SCIF_TRANS_RETRIES=" << SCIF_TRANS_RETRIES << std::endl;
   return ss.str();
 }
 
@@ -40,10 +39,18 @@ Socket* listeningSocket(uint16_t listening_port) {
   return new HBSocket(listening_port);
 }
 
-Socket* epdSocket(scif_epd_t &epd) {
+Socket* epdSocket(scif_epd_t epd) {
   assert(epd != SCIF_OPEN_FAILED);
   ScifEpd e(epd);
   return new HBSocket(e);
+}
+
+std::future<Socket *> epdSocketAsync(scif_epd_t epd) {
+  assert(epd != SCIF_OPEN_FAILED);
+  return std::async(std::launch::async, [epd]() -> Socket * {
+    ScifEpd e(epd);
+    return new HBSocket(e);
+  });
 }
 
 }

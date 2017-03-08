@@ -51,8 +51,7 @@ class HBSocket : public Socket {
   std::size_t send(const uint8_t *data, std::size_t data_size) override;
   std::size_t recv(uint8_t *msg_it, std::size_t msg_size) override;
 
-  bool canSend() override { return sendrecs_->canWrite(); }
-  bool canRecv() override { return recvrecs_->canRead(); }
+  void waitIn(long timeout) override { while(!sn_.canRecvMsg(timeout)); }
   Buffer getSendBuffer() override;
 };
 

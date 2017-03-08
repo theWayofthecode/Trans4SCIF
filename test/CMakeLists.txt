@@ -4,7 +4,6 @@ set(TEST_SOURCE_FILES
         test_ctl_messages.cpp
         test_scifnode.cpp
         test_rmarecords.cpp
-        test_hbsocket.cpp
         main.cpp)
 
 include_directories("${PROJECT_SOURCE_DIR}/src")

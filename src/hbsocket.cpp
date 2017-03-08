@@ -40,20 +40,24 @@ void HBSocket::init() {
   std::vector<uint8_t> rmaids_msg;
   rmaids_msg.reserve(3*sizeof(RMAId));
 
+  // Insert in message buf_id
   RMAId buf_id{buf_win.get_off(), buf_win.get_len()};
   std::vector<uint8_t> buf_msg(PackRMAIdMsg(buf_id));
   rmaids_msg.insert(rmaids_msg.end(), buf_msg.begin(), buf_msg.end());
 
+  // Insert in message wr_id
   RMAId wr_id{wr_win.get_off(), wr_win.get_len()};
   std::vector<uint8_t> wr_msg(PackRMAIdMsg(wr_id));
   rmaids_msg.insert(rmaids_msg.end(), wr_msg.begin(), wr_msg.end());
 
+  // Insert in message recvbuf_id
   RMAId recvbuf_id{recvbuf_.get_off(), recvbuf_.get_len()};
   std::vector<uint8_t> recvbuf_msg(PackRMAIdMsg(recvbuf_id));
   rmaids_msg.insert(rmaids_msg.end(), recvbuf_msg.begin(), recvbuf_msg.end());
+  // Send the message to the peer
   sn_.sendMsg(rmaids_msg);
 
-  // Get the peer node's offsets
+  // Receive the peer node's RMAIds
   rmaids_msg = sn_.recvMsg(3*sizeof(RMAId));
   RMAId peer_buf_id(UnpackRMAIdMsg(rmaids_msg));
   RMAId peer_wr_id(UnpackRMAIdMsg(rmaids_msg));
@@ -100,7 +104,7 @@ Buffer HBSocket::getSendBuffer() {
   return Buffer{sendbuf_.get_mem()+buf_rec.start, space};
 }
 
-//TODO: What abou blocking send?
+//TODO: use as a parameter Buffer instead of *data, data_size?
 std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
   if (!data_size || !sendrecs_->canWrite() )
     return 0;
@@ -127,15 +131,8 @@ std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
 
 std::size_t HBSocket::recv(uint8_t *data, std::size_t data_size) {
 
-  if (!data_size)
+  if (!data_size || !recvrecs_->canRead())
     return 0;
-
-  // If there is no any data to be read
-  // Block (then poll) till it is available
-  if (!recvrecs_->canRead()) {
-    while (!sn_.canRecvMsg(-1));
-    while (!recvrecs_->canRead());
-  }
 
   auto wr_rec = recvrecs_->getWrRec();
   assert (wr_rec.end > wr_rec.start);

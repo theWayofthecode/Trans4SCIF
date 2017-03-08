@@ -15,6 +15,7 @@
 #define _TRANS4SCIF_TRANS4SCIF_H_
 
 #include <scif.h>
+#include <future>
 
 namespace t4s {
 
@@ -31,8 +32,7 @@ class Socket {
   virtual ~Socket() {};
   virtual std::size_t send(const uint8_t *msg, std::size_t msg_size) = 0;
   virtual std::size_t recv(uint8_t *msg, std::size_t msg_size) = 0;
-  virtual bool canSend() = 0;
-  virtual bool canRecv() = 0;
+  virtual void waitIn(long timeout) = 0;
   virtual Buffer getSendBuffer() = 0;
 };
 
@@ -43,7 +43,10 @@ Socket* connectingSocket(uint16_t target_node_id, uint16_t target_port);
 Socket* listeningSocket(uint16_t listening_port);
 
 // Construct a Socket from a connected epd
-Socket* epdSocket(scif_epd_t &epd);
+Socket* epdSocket(scif_epd_t epd);
+
+// Construct a Socket from a connected epd asynchronously
+std::future<Socket *> epdSocketAsync(scif_epd_t epd);
 
 }
 #endif //_TRANS4SCIF_TRANS4SCIF_H_

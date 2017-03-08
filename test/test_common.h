@@ -31,10 +31,9 @@ std::array<Node, 2> MakeConnectedNodes(Listener listen, Connecter connect) {
     return Node(listen(PORT));
   });
 
-// Wait for scif_accept()
+  // Wait for scif_accept()
   p.get_future().wait();
-  // TODO: Whati is this sleep for?
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
   uint16_t self_node_id = -1;
   scif_get_nodeIDs(nullptr, 0, &self_node_id);
   try {
