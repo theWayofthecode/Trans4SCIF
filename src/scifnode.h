@@ -57,6 +57,9 @@ class ScifNode {
   // On error it throws a system_error exception
   std::vector<uint8_t> recvMsg(std::size_t size);
 
+  int send(void *data, int len) { return scif_send(epd_.get(), data, len, 0); }
+  int recv(void *data, int len) { return scif_recv(epd_.get(), data, len, 0); }
+
   // Returns an RMAWindow
   RMAWindow createRMAWindow(std::size_t len, int prot_flags) {
     return RMAWindow(epd_.get(), len, prot_flags);

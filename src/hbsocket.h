@@ -34,6 +34,7 @@ class HBSocket : public Socket {
   std::unique_ptr<RMARecordsWriter> sendrecs_;
   std::unique_ptr<RMARecordsReader> recvrecs_;
   static std::vector<uint8_t> notif;
+  int pending_notifs = 0;
   void init();
 
  public:
@@ -51,7 +52,7 @@ class HBSocket : public Socket {
   std::size_t send(const uint8_t *data, std::size_t data_size) override;
   std::size_t recv(uint8_t *msg_it, std::size_t msg_size) override;
 
-  void waitIn(long timeout) override { while(!sn_.canRecvMsg(timeout)); }
+  void waitIn(long timeout) override;
   Buffer getSendBuffer() override;
 };
 

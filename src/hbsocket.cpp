@@ -101,10 +101,10 @@ Buffer HBSocket::getSendBuffer() {
   //round towards minus infinity
   std::size_t space = ROUND_TO_BOUNDARY((buf_rec.end-buf_rec.start)-(CACHELINE_SIZE-1),
                                         CACHELINE_SIZE);
+  space = std::min(space, RECV_BUF_SIZE/2);
   return Buffer{sendbuf_.get_mem()+buf_rec.start, space};
 }
 
-//TODO: use as a parameter Buffer instead of *data, data_size?
 std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
   if (!data_size || !sendrecs_->canWrite() )
     return 0;
@@ -112,7 +112,7 @@ std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
   //round towards minus infinity
   std::size_t space = ROUND_TO_BOUNDARY((buf_rec.end-buf_rec.start)-(CACHELINE_SIZE-1),
                                         CACHELINE_SIZE);
-  std::size_t to_write = std::min(space, data_size);
+  std::size_t to_write = std::min(std::min(space, data_size), RECV_BUF_SIZE/2);
   assert(to_write > 0);
   if (!sendbuf_.in_window(static_cast<const uint8_t *>(data))) {
     void *__restrict dest = static_cast<void *__restrict>(sendbuf_.get_mem()) + buf_rec.start;
@@ -122,14 +122,21 @@ std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
   }
   sn_.writeMsg(peer_recvbuf_.off+buf_rec.start, sendbuf_.get_off()+buf_rec.start,
                ROUND_TO_BOUNDARY(to_write, CACHELINE_SIZE));
+  if (1 != sn_.send(notif.data(), 1))
+    sn_.sendMsg(notif);
   uint64_t sigval = to_write + buf_rec.start;
   off_t sigoff = sendrecs_->written(to_write);
   sn_.signalPeer(sigoff, sigval);
-  sn_.sendMsg(notif);
+
   return to_write + send(data+to_write, data_size-to_write);
 }
 
 std::size_t HBSocket::recv(uint8_t *data, std::size_t data_size) {
+  // Receive as many pending notification tokens as possible
+  if (pending_notifs > 0) {
+    uint8_t tmp[pending_notifs];
+    pending_notifs -= sn_.recv(tmp, pending_notifs);
+  }
 
   if (!data_size || !recvrecs_->canRead())
     return 0;
@@ -140,10 +147,19 @@ std::size_t HBSocket::recv(uint8_t *data, std::size_t data_size) {
   void * __restrict dest = data;
   void * __restrict src = static_cast<void * __restrict>(recvbuf_.get_mem())+wr_rec.start;
   memcpy(data, src, to_read);
+
   if (recvrecs_->read(to_read))
-    sn_.recvMsg(notif.size());
+    pending_notifs++;
 
   return to_read + recv(data+to_read, data_size-to_read);
+}
+
+void HBSocket::waitIn (long timeout) {
+    if (pending_notifs > 0) {
+      sn_.recvMsg(pending_notifs);
+      pending_notifs = 0;
+    }
+    while (!sn_.canRecvMsg(timeout));
 }
 
 }

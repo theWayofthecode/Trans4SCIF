@@ -19,7 +19,7 @@
 
 namespace t4s {
 
-// Return the version of the library in string
+// Return the version of the library
 std::string trans4scif_config();
 
 struct Buffer {
@@ -30,9 +30,21 @@ struct Buffer {
 class Socket {
  public:
   virtual ~Socket() {};
-  virtual std::size_t send(const uint8_t *msg, std::size_t msg_size) = 0;
-  virtual std::size_t recv(uint8_t *msg, std::size_t msg_size) = 0;
+  
+  // Send up to data_size number of bytes from the memory region pointed by data.
+  // Return the number of bytes actually sent. This method does not block.
+  virtual std::size_t send(const uint8_t *data, std::size_t data_size) = 0;
+
+  // Receive (by copying) up to data_size number of bytes to the memory region pointed by data.
+  // Return the number of bytes actually received. This method does not block.
+  virtual std::size_t recv(uint8_t *data, std::size_t data_size) = 0;
+
+  // Block up to timeout seconds till there is available data to be received.
+  // If timeout occurs, and std::runtime_error exception is thrown.
   virtual void waitIn(long timeout) = 0;
+
+  // Get the internal Send buffer details.
+  // This method must invoked for each use.
   virtual Buffer getSendBuffer() = 0;
 };
 
@@ -45,7 +57,7 @@ Socket* listeningSocket(uint16_t listening_port);
 // Construct a Socket from a connected epd
 Socket* epdSocket(scif_epd_t epd);
 
-// Construct a Socket from a connected epd asynchronously
+// Construct a Socket from a connected epd, asynchronously
 std::future<Socket *> epdSocketAsync(scif_epd_t epd);
 
 }
