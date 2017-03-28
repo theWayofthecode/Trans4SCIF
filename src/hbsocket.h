@@ -31,6 +31,7 @@ class HBSocket : public Socket {
   RMAWindow recvbuf_;
   RMAWindow sendbuf_;
   RMAId peer_recvbuf_;
+  const std::size_t recv_buf_size_;
   std::unique_ptr<RMARecordsWriter> sendrecs_;
   std::unique_ptr<RMARecordsReader> recvrecs_;
   static std::vector<uint8_t> notif;
@@ -40,13 +41,13 @@ class HBSocket : public Socket {
  public:
 
   // Construct a connecting node
-  explicit HBSocket(uint16_t target_node_id, uint16_t target_port);
+  explicit HBSocket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size);
 
   // Construct a listening node
-  explicit HBSocket(uint16_t listening_port);
+  explicit HBSocket(uint16_t listening_port, std::size_t buf_size);
 
   // Contruct from an already connected node
-  explicit HBSocket(ScifEpd &epd);
+  explicit HBSocket(ScifEpd &epd, std::size_t buf_size);
 
   // Sends at most len bytes (Streaming semantics)
   std::size_t send(const uint8_t *data, std::size_t data_size) override;
@@ -54,6 +55,7 @@ class HBSocket : public Socket {
 
   void waitIn(long timeout) override;
   Buffer getSendBuffer() override;
+  std::size_t getBufSize() override { return recv_buf_size_; }
 };
 
 }

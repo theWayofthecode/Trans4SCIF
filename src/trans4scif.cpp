@@ -27,29 +27,29 @@ std::string trans4scif_config() {
   std::stringstream ss;
   ss << "Version=" << TRANS4SCIF_VERSION_MAJOR
      << "." << TRANS4SCIF_VERSION_MINOR << std::endl;
-  ss << "RECV_BUF_SIZE=" << RECV_BUF_SIZE << "B\n";
+  ss << "default BUF_SIZE=" << BUF_SIZE << "B\n";
   return ss.str();
 }
 
-Socket* connectingSocket(uint16_t target_node_id, uint16_t target_port) {
-  return new HBSocket(target_node_id, target_port);
+Socket* connectingSocket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size) {
+  return new HBSocket(target_node_id, target_port, buf_size);
 }
 
-Socket* listeningSocket(uint16_t listening_port) {
-  return new HBSocket(listening_port);
+Socket* listeningSocket(uint16_t listening_port, std::size_t buf_size) {
+  return new HBSocket(listening_port, buf_size);
 }
 
-Socket* epdSocket(scif_epd_t epd) {
+Socket* epdSocket(scif_epd_t epd, std::size_t buf_size) {
   assert(epd != SCIF_OPEN_FAILED);
   ScifEpd e(epd);
-  return new HBSocket(e);
+  return new HBSocket(e, buf_size);
 }
 
-std::future<Socket *> epdSocketAsync(scif_epd_t epd) {
+std::future<Socket *> epdSocketAsync(scif_epd_t epd, std::size_t buf_size) {
   assert(epd != SCIF_OPEN_FAILED);
-  return std::async(std::launch::async, [epd]() -> Socket * {
+  return std::async(std::launch::async, [epd, buf_size]() -> Socket * {
     ScifEpd e(epd);
-    return new HBSocket(e);
+    return new HBSocket(e, buf_size);
   });
 }
 

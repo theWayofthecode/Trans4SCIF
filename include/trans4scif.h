@@ -19,6 +19,9 @@
 
 namespace t4s {
 
+// Default internal buffer size
+constexpr std::size_t BUF_SIZE = 0x1000000;
+
 // Return the version of the library
 std::string trans4scif_config();
 
@@ -46,19 +49,23 @@ class Socket {
   // Get the internal Send buffer details.
   // This method must invoked for each use.
   virtual Buffer getSendBuffer() = 0;
+
+  // Get the internal buffer size.
+  // Note: recvbuf_size == sendbuf_size
+  virtual std::size_t getBufSize() = 0;
 };
 
 // Construct a connecting node
-Socket* connectingSocket(uint16_t target_node_id, uint16_t target_port);
+Socket* connectingSocket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size = BUF_SIZE);
 
 // Construct a listening node
-Socket* listeningSocket(uint16_t listening_port);
+Socket* listeningSocket(uint16_t listening_port, std::size_t buf_size = BUF_SIZE);
 
 // Construct a Socket from a connected epd
-Socket* epdSocket(scif_epd_t epd);
+Socket* epdSocket(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
 
 // Construct a Socket from a connected epd, asynchronously
-std::future<Socket *> epdSocketAsync(scif_epd_t epd);
+std::future<Socket *> epdSocketAsync(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
 
 }
 #endif //_TRANS4SCIF_TRANS4SCIF_H_

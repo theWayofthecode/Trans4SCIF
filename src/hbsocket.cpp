@@ -71,28 +71,31 @@ void HBSocket::init() {
   Mmapmem peer_wr_mmap(sn_.createMmapmem(peer_wr_id.off,
                                           peer_wr_id.size, SCIF_PROT_READ | SCIF_PROT_WRITE));
 
-  sendrecs_.reset(new RMARecordsWriter(buf_win, peer_wr_mmap));
-  recvrecs_.reset(new RMARecordsReader(peer_buf_mmap, wr_win));
+  sendrecs_.reset(new RMARecordsWriter(buf_win, peer_wr_mmap, recv_buf_size_));
+  recvrecs_.reset(new RMARecordsReader(peer_buf_mmap, wr_win, recv_buf_size_));
 }
 
-HBSocket::HBSocket(uint16_t target_node_id, uint16_t target_port) :
+HBSocket::HBSocket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size) :
     sn_(target_node_id, target_port),
-    recvbuf_(sn_.createRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
-    sendbuf_(sn_.createRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
+    recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
+    sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
+    recv_buf_size_(buf_size) {
   init();
 }
 
-HBSocket::HBSocket(uint16_t listening_port) :
+HBSocket::HBSocket(uint16_t listening_port, std::size_t buf_size) :
     sn_(listening_port),
-    recvbuf_(sn_.createRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
-    sendbuf_(sn_.createRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
+    recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
+    sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
+    recv_buf_size_(buf_size) {
   init();
 }
 
-HBSocket::HBSocket(ScifEpd &epd) :
+HBSocket::HBSocket(ScifEpd &epd, std::size_t buf_size) :
     sn_(epd),
-    recvbuf_(sn_.createRMAWindow(RECV_BUF_SIZE, SCIF_PROT_WRITE)),
-    sendbuf_(sn_.createRMAWindow(SEND_BUF_SIZE, SCIF_PROT_READ)) {
+    recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
+    sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
+    recv_buf_size_(buf_size) {
   init();
 }
 
@@ -101,7 +104,7 @@ Buffer HBSocket::getSendBuffer() {
   //round towards minus infinity
   std::size_t space = ROUND_TO_BOUNDARY((buf_rec.end-buf_rec.start)-(CACHELINE_SIZE-1),
                                         CACHELINE_SIZE);
-  space = std::min(space, RECV_BUF_SIZE/2);
+  space = std::min(space, recv_buf_size_/2);
   return Buffer{sendbuf_.get_mem()+buf_rec.start, space};
 }
 
@@ -112,7 +115,7 @@ std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
   //round towards minus infinity
   std::size_t space = ROUND_TO_BOUNDARY((buf_rec.end-buf_rec.start)-(CACHELINE_SIZE-1),
                                         CACHELINE_SIZE);
-  std::size_t to_write = std::min(std::min(space, data_size), RECV_BUF_SIZE/2);
+  std::size_t to_write = std::min(std::min(space, data_size), recv_buf_size_/2);
   assert(to_write > 0);
   if (!sendbuf_.in_window(static_cast<const uint8_t *>(data))) {
     void *__restrict dest = static_cast<void *__restrict>(sendbuf_.get_mem()) + buf_rec.start;

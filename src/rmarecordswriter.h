@@ -35,8 +35,9 @@ class RMARecordsWriter {
   Record *wr_tail_;
   volatile Record *wr_idx_;
 
+  const std::size_t recv_buf_size_;
  public:
-  explicit RMARecordsWriter(RMAWindow &buf_win, Mmapmem &wr_mem);
+  explicit RMARecordsWriter(RMAWindow &buf_win, Mmapmem &wr_mem, std::size_t recv_buf_size);
 
   //Check if there is space in the buffer and also free wr_record slot
   bool canWrite() {

@@ -5,14 +5,6 @@ project(trans4scif)
 set (TRANS4SCIF_VERSION_MAJOR 2)
 set(TRANS4SCIF_VERSION_MINOR 4)
 
-if (DEFINED ENV{T4S_RECV_BUF_SIZE})
-    message("RECV_BUF_SIZE = $ENV{T4S_RECV_BUF_SIZE} * PAGE_SIZE")
-    set(RECV_BUF_SIZE "$ENV{T4S_RECV_BUF_SIZE} * PAGE_SIZE")
-else ()
-    message("RECV_BUF_SIZE = 1024 * PAGE_SIZE")
-    set(RECV_BUF_SIZE "1024 * PAGE_SIZE")
-endif ()
-
 configure_file (
         "${PROJECT_SOURCE_DIR}/src/trans4scif_config.h.in"
         "${PROJECT_SOURCE_DIR}/src/trans4scif_config.h"

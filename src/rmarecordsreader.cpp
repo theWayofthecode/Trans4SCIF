@@ -17,18 +17,19 @@
 
 namespace t4s {
 
-  RMARecordsReader::RMARecordsReader(Mmapmem &buf_mem, RMAWindow &wr_win) :
+  RMARecordsReader::RMARecordsReader(Mmapmem &buf_mem, RMAWindow &wr_win, std::size_t recv_buf_size) :
     buf_mem_{std::move(buf_mem)},
     wr_win_{std::move(wr_win)},
     buf_head_{reinterpret_cast<Record *>(buf_mem_.get_addr())},
-    wr_head_{reinterpret_cast<Record *>(wr_win_.get_mem())} {
+    wr_head_{reinterpret_cast<Record *>(wr_win_.get_mem())},
+    recv_buf_size_(recv_buf_size) {
 
     buf_tail_ = buf_head_ + 3;
     buf_idx_ = buf_head_;
     wr_tail_ = wr_head_ + wr_win_.get_len() / sizeof(Record);
     wr_idx_ = wr_head_;
     buf_idx_->start = 0;
-    buf_idx_->end = RECV_BUF_SIZE;
+    buf_idx_->end = recv_buf_size_;
   }
 
   bool RMARecordsReader::read(std::size_t rlen) {
@@ -44,11 +45,11 @@ namespace t4s {
       if (++wr_idx_ == wr_tail_)
         wr_idx_ = wr_head_;
       next_buf->end = ROUND_TO_BOUNDARY(next_buf->end, CACHELINE_SIZE);
-      if (next_buf->end == RECV_BUF_SIZE)
+      if (next_buf->end == recv_buf_size_)
         buf_idx_ = next_buf;
       return true;
     }
-    assert(next_buf->end < RECV_BUF_SIZE);
+    assert(next_buf->end < recv_buf_size_);
     return false;
   }
 }

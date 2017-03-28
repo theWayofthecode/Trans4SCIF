@@ -15,10 +15,12 @@
 #include "scifnode.h"
 #include "util.h"
 #include "catch.hpp"
+#include "trans4scif.h"
 #include "rmarecordsreader.h"
 #include "rmarecordswriter.h"
 #include "test_common.h"
 #include "../src/trans4scif_config.h"
+#include "../include/trans4scif.h"
 
 TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
 {
@@ -38,8 +40,8 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
   REQUIRE(win_recv.get_off() == mmap_wr.get_off());
   off_t win_recv_off = win_recv.get_off();
   off_t win_send_off = win_send.get_off();
-  t4s::RMARecordsWriter sender(win_send, mmap_wr);
-  t4s::RMARecordsReader recv(mmap_buf, win_recv);
+  t4s::RMARecordsWriter sender(win_send, mmap_wr, t4s::BUF_SIZE);
+  t4s::RMARecordsReader recv(mmap_buf, win_recv, t4s::BUF_SIZE);
 
   SECTION("Check read and write when recv_buf is empty")
   {
@@ -55,7 +57,7 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
     sn_pair[0]->signalPeer(off, 100);
     t4s::Record rec = sender.getBufRec();
     REQUIRE(rec.start == 128);
-    REQUIRE(rec.end == t4s::RECV_BUF_SIZE);
+    REQUIRE(rec.end == t4s::BUF_SIZE);
     rec = recv.getWrRec();
     REQUIRE(rec.start == 0);
     REQUIRE(rec.end == 100);
@@ -63,8 +65,8 @@ TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
     recv.read(100);
     rec = sender.getBufRec();
     REQUIRE(rec.start == 128);
-    REQUIRE(rec.end == t4s::RECV_BUF_SIZE);
-    REQUIRE(win_recv_off+sizeof(t4s::Record)+sizeof(uint64_t) == sender.written(t4s::RECV_BUF_SIZE-128));
+    REQUIRE(rec.end == t4s::BUF_SIZE);
+    REQUIRE(win_recv_off+sizeof(t4s::Record)+sizeof(uint64_t) == sender.written(t4s::BUF_SIZE-128));
     REQUIRE(sender.canWrite());
     rec = sender.getBufRec();
     REQUIRE(rec.start == 0);
