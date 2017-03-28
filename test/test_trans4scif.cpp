@@ -174,6 +174,37 @@ TEST_CASE("Random data transfers", "[trans4scif]") {
   trecv.join();
 }
 
+
+TEST_CASE("Exponential increasing size", "[trans4scif]") {
+  auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
+  // Receiver
+  std::thread trecv ([&s_pair]() {
+    std::unique_ptr<uint8_t[]> rbuf(new uint8_t[t4s::BUF_SIZE]);
+    for (int sz = 64; sz < (1 << 28); sz <<= 1) {
+      for (int j = 0; j < 100; ++j) {
+        WARN("i: " << j << " sz: " << sz);
+        for (int i = 0;
+             i < sz;
+             i += s_pair[1]->recv(rbuf.get() + i, sz - i)
+            );
+      }
+    }
+  });
+
+  // Sender
+  std::unique_ptr<uint8_t[]> sbuf(new uint8_t[t4s::BUF_SIZE]);
+  for (int sz = 64; sz < (1 << 28); sz <<= 1) {
+    for (int j = 0; j < 100; ++j) {
+      WARN("i: " << j << " sz: " << sz);
+      for (int i = 0;
+           i < sz;
+           i += s_pair[0]->send(sbuf.get() + i, sz - i)
+          );
+    }
+  }
+  trecv.join();
+}
+
 TEST_CASE("epdSocket test", "[trans4scif]") {
   auto s_pair = MakeConnectedNodes<scif_epd_t>(plain_scif_listen, plain_scif_connect);
   uint8_t s = 'x';
