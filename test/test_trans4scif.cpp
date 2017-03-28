@@ -149,9 +149,9 @@ TEST_CASE("Random data transfers", "[trans4scif]") {
     std::knuth_b eng(0);
     std::unique_ptr<uint8_t[]> rbuf(new uint8_t[t4s::BUF_SIZE]);
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 10; ++i) {
       int sz = dist(eng);
-      INFO("i: " << i << " sz: " << sz);
+      WARN("i: " << i << " sz: " << sz);
       for (int i = 0;
            i < sz;
            i += s_pair[1]->recv(rbuf.get() + i, sz - i)
@@ -163,7 +163,7 @@ TEST_CASE("Random data transfers", "[trans4scif]") {
   std::uniform_int_distribution<> dist(0, t4s::BUF_SIZE - t4s::CHUNK_HEAD_SIZE - 1);
   std::knuth_b eng(0);
   std::unique_ptr<uint8_t[]> sbuf(new uint8_t[t4s::BUF_SIZE]);
-  for (int i = 0; i < 1; ++i) {
+  for (int i = 0; i < 10; ++i) {
     int sz = dist(eng);
     INFO("i: " << i << " sz: " << sz);
     for (int i = 0;
