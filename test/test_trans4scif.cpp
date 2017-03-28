@@ -116,20 +116,69 @@ TEST_CASE("Send and recv 0 bytes", "[trans4scif]") {
 TEST_CASE("Random data transfers", "[trans4scif]") {
   auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>
   (t4s::listeningSocket, t4s::connectingSocket);
+  // Receiver
+  std::thread trecv ([&s_pair]() {
+    std::uniform_int_distribution<> dist(0, t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE - 1);
+    std::knuth_b eng(0);
+    std::unique_ptr<uint8_t[]> rbuf(new uint8_t[t4s::RECV_BUF_SIZE]);
+
+    for (int i = 0; i < 10; ++i) {
+      int sz = dist(eng);
+      WARN("i: " << i << " sz: " << sz);
+      for (int i = 0;
+           i < sz;
+           i += s_pair[1]->recv(rbuf.get() + i, sz - i)
+          );
+    }
+  });
+
+  // Sender
   std::uniform_int_distribution<> dist(0, t4s::RECV_BUF_SIZE - t4s::CHUNK_HEAD_SIZE - 1);
   std::knuth_b eng(0);
-
-  for (int i = 0; i < 100; ++i) {
+  std::unique_ptr<uint8_t[]> sbuf(new uint8_t[t4s::RECV_BUF_SIZE]);
+  for (int i = 0; i < 10; ++i) {
     int sz = dist(eng);
-    std::vector<uint8_t> sbuf(sz);
-    std::for_each(sbuf.begin(), sbuf.end(), [&dist, &eng](uint8_t &n){ n = dist(eng) % 0xff; });
-    std::vector<uint8_t> rbuf(sz);
     INFO("i: " << i << " sz: " << sz);
-    REQUIRE( sbuf.size() == s_pair[0]->send(sbuf.data(), sbuf.size()) );
-    REQUIRE( rbuf.size() == s_pair[1]->recv(rbuf.data(), rbuf.size()) );
-    REQUIRE( sbuf == rbuf );
+    for (int i = 0;
+         i < sz;
+         i += s_pair[0]->send(sbuf.get(), 1)
+        );
   }
+  trecv.join();
 }
+
+
+TEST_CASE("Exponential increasing size", "[trans4scif]") {
+  auto s_pair = MakeConnectedNodes<std::shared_ptr<t4s::Socket>>
+  (t4s::listeningSocket, t4s::connectingSocket);
+  // Receiver
+  std::thread trecv ([&s_pair]() {
+    std::unique_ptr<uint8_t[]> rbuf(new uint8_t[t4s::RECV_BUF_SIZE]);
+    for (int sz = 64; sz < (1 << 28); sz <<= 1) {
+      for (int j = 0; j < 100; ++j) {
+        WARN("i: " << j << " sz: " << sz);
+        for (int i = 0;
+             i < sz;
+             i += s_pair[1]->recv(rbuf.get(), std::min(sz - i, static_cast<int>(t4s::RECV_BUF_SIZE)))
+            );
+      }
+    }
+  });
+
+  // Sender
+  std::unique_ptr<uint8_t[]> sbuf(new uint8_t[t4s::RECV_BUF_SIZE]);
+  for (int sz = 64; sz < (1 << 28); sz <<= 1) {
+    for (int j = 0; j < 100; ++j) {
+      WARN("i: " << j << " sz: " << sz);
+      for (int i = 0;
+           i < sz;
+           i += s_pair[0]->send(sbuf.get(), std::min(sz - i, static_cast<int>(t4s::RECV_BUF_SIZE)))
+          );
+    }
+  }
+  trecv.join();
+}
+
 
 TEST_CASE("epdSocket test", "[trans4scif]") {
   auto s_pair = MakeConnectedNodes<scif_epd_t>(plain_scif_listen, plain_scif_connect);
