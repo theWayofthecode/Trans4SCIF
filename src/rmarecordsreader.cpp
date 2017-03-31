@@ -25,31 +25,35 @@ namespace t4s {
     recv_buf_size_(recv_buf_size) {
 
     buf_tail_ = buf_head_ + 3;
-    buf_idx_ = buf_head_;
+    buf_head_->start = 0;
+    buf_head_->end = recv_buf_size_;
+    buf_idx_ = buf_head_ + 1;
+
     wr_tail_ = wr_head_ + wr_win_.get_len() / sizeof(Record);
     wr_idx_ = wr_head_;
-    buf_idx_->start = 0;
-    buf_idx_->end = recv_buf_size_;
+
   }
 
   bool RMARecordsReader::read(std::size_t rlen) {
-    volatile Record *next_buf = buf_idx_ + 1;
-    if (next_buf == buf_tail_)
-      next_buf = buf_head_;
-    next_buf->end += rlen;
-    wr_idx_->start += rlen;
-    assert(wr_idx_->start <= wr_idx_->end);
-    if (wr_idx_->start == wr_idx_->end) {
+    if (wr_idx_->start+rlen == wr_idx_->end) {
       wr_idx_->start = inval_rec.start;
       wr_idx_->end = inval_rec.end;
       if (++wr_idx_ == wr_tail_)
         wr_idx_ = wr_head_;
-      next_buf->end = ROUND_TO_BOUNDARY(next_buf->end, CACHELINE_SIZE);
-      if (next_buf->end == recv_buf_size_)
-        buf_idx_ = next_buf;
+      uint64_t new_end = ROUND_TO_BOUNDARY(buf_idx_->end+rlen, CACHELINE_SIZE);
+      buf_idx_->end = new_end;
+      // We use new_end to avoid a race condition since buf_idx_->end can be = 0 by the
+      // sender before the following comparison takes place.
+      if (new_end == recv_buf_size_) {
+        if (++buf_idx_ == buf_tail_)
+          buf_idx_ = buf_head_;
+      }
       return true;
+    } else {
+      buf_idx_->end += rlen;
+      wr_idx_->start += rlen;
     }
-    assert(next_buf->end < recv_buf_size_);
+    assert(buf_idx_->end < recv_buf_size_);
     return false;
   }
 }
