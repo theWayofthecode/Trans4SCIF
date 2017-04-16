@@ -119,6 +119,7 @@ std::size_t HBSocket::send(const uint8_t *data, std::size_t data_size) {
                                           CACHELINE_SIZE);
     std::size_t to_write = std::min(std::min(space, data_size), recv_buf_size_ / 2);
     assert(to_write > 0);
+
     if (!sendbuf_.in_window(static_cast<const uint8_t *>(data))) {
       void *__restrict dest = static_cast<void *__restrict>(sendbuf_.get_mem()) + buf_rec.start;
       memcpy(dest, data, to_write);

@@ -42,7 +42,7 @@ namespace t4s {
         wr_idx_ = wr_head_;
       uint64_t new_end = ROUND_TO_BOUNDARY(buf_idx_->end+rlen, CACHELINE_SIZE);
       buf_idx_->end = new_end;
-      // We use new_end to avoid a race condition since buf_idx_->end can be = 0 by the
+      // We use new_end to avoid a race condition since buf_idx_->end can be assigned 0 by the
       // sender before the following comparison takes place.
       if (new_end == recv_buf_size_) {
         if (++buf_idx_ == buf_tail_)

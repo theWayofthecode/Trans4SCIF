@@ -153,7 +153,6 @@ TEST_CASE("Random data transfers", "[trans4scif]") {
 
     for (int i = 0; i < 1000; ++i) {
       int sz = dist(eng);
-      INFO("i: " << i << " sz: " << sz);
       for (int i = 0;
            i < sz;
            i += s_pair[1]->recv(rbuf.get(), std::min(sz - i, static_cast<int>(t4s::BUF_SIZE)))
@@ -168,7 +167,6 @@ TEST_CASE("Random data transfers", "[trans4scif]") {
 
   for (int i = 0; i < 1000; ++i) {
     int sz = dist(eng);
-    INFO("i: " << i << " sz: " << sz);
     for (int i = 0;
          i < sz;
          i += s_pair[0]->send(sbuf.get(), std::min(sz - i, static_cast<int>(t4s::BUF_SIZE)))
