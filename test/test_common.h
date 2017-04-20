@@ -19,7 +19,7 @@ Author: Aram Santogidis <aram.santogidis@cern.ch>
 #include "scifnode.h"
 #include <future>
 
-#define PORT 6798
+constexpr uint16_t PORT{6798};
 
 template<typename Node, typename Listener, typename Connecter>
 std::array<Node, 2> MakeConnectedNodes(Listener listen, Connecter connect) {

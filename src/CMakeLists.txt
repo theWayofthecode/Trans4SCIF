@@ -5,7 +5,6 @@ set(SOURCE_FILES
         rmarecordsreader.cpp
         rmarecordswriter.cpp
         scifnode.cpp
-        hbsocket.cpp
         trans4scif.cpp)
 
 add_library(trans4scif SHARED ${SOURCE_FILES})

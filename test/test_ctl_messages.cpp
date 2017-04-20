@@ -12,7 +12,6 @@
 */
 
 #include "catch.hpp"
-#include "hbsocket.h"
 #include "ctl_messages.h"
 
 TEST_CASE("Test packing/unpacking of RMAId ctl messages", "[ctl_messages]") {

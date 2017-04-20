@@ -16,6 +16,7 @@
 
 #include <scif.h>
 #include <future>
+#include <memory>
 
 namespace t4s {
 
@@ -25,47 +26,68 @@ constexpr std::size_t BUF_SIZE = 0x1000000;
 // Return the version of the library
 std::string trans4scif_config();
 
-struct Buffer {
+// TODO: use memory block representation for send and receive
+// void* to uint8_t* ?
+struct Blk {
   void *base;
   std::size_t space;
 };
 
 class Socket {
  public:
-  virtual ~Socket() {};
+  // Construct a connecting node
+  explicit Socket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size = BUF_SIZE);
+
+  // Construct a listening node
+  explicit Socket(uint16_t listening_port, std::size_t buf_size = BUF_SIZE);
+//
+//  // Contruct from an already connected node
+//  explicit Socket(ScifEpd &epd, std::size_t buf_size);
+
+  // Copy is prohibited
+  Socket(const Socket &s) = delete;
+  Socket &operator=(const Socket &s) = delete;
   
+  ~Socket();
+
   // Send up to data_size number of bytes from the memory region pointed by data.
   // Return the number of bytes actually sent. This method does not block.
-  virtual std::size_t send(const uint8_t *data, std::size_t data_size) = 0;
+  std::size_t send(const uint8_t *data, std::size_t data_size);
 
   // Receive (by copying) up to data_size number of bytes to the memory region pointed by data.
   // Return the number of bytes actually received. This method does not block.
-  virtual std::size_t recv(uint8_t *data, std::size_t data_size) = 0;
+  std::size_t recv(uint8_t *data, std::size_t data_size);
 
   // Block up to timeout seconds till there is available data to be received.
   // If timeout occurs, and std::runtime_error exception is thrown.
-  virtual void waitIn(long timeout) = 0;
+  void waitIn(long timeout);
 
   // Get the internal Send buffer details.
   // This method must invoked for each use.
-  virtual Buffer getSendBuffer() = 0;
+  Blk getSendBuffer();
 
   // Get the internal buffer size.
   // Note: recvbuf_size == sendbuf_size
-  virtual std::size_t getBufSize() = 0;
+  std::size_t getBufSize();
+
+ private:
+  // Pimpl
+  class SockState;
+  const std::unique_ptr<SockState> state;
 };
 
-// Construct a connecting node
-Socket* connectingSocket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size = BUF_SIZE);
+//
+//// Construct a connecting node
+//Socket* connectingSocket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size = BUF_SIZE);
+//
+//// Construct a listening node
+//Socket* listeningSocket(uint16_t listening_port, std::size_t buf_size = BUF_SIZE);
 
-// Construct a listening node
-Socket* listeningSocket(uint16_t listening_port, std::size_t buf_size = BUF_SIZE);
-
-// Construct a Socket from a connected epd
-Socket* epdSocket(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
-
-// Construct a Socket from a connected epd, asynchronously
-std::future<Socket *> epdSocketAsync(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
+//// Construct a Socket from a connected epd
+//Socket* epdSocket(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
+//
+//// Construct a Socket from a connected epd, asynchronously
+//std::future<Socket *> epdSocketAsync(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
 
 }
 #endif //_TRANS4SCIF_TRANS4SCIF_H_
