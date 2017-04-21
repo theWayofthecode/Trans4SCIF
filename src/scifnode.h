@@ -37,8 +37,8 @@ class ScifNode {
   // Construct a listening node
   ScifNode(uint16_t listening_port);
 
-  // Construct ScifNode from connected ScifEpd
-  ScifNode(ScifEpd &epd) : epd_(std::move(epd)) {};
+  // Construct ScifNode from connected scif epd
+  ScifNode(scif_epd_t epd) : epd_(epd) {};
 
   // Move constructor and assignment
   ScifNode(ScifNode &&sn) : epd_(std::move(sn.epd_)) {};

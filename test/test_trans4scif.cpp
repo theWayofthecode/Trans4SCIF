@@ -140,7 +140,6 @@ TEST_CASE("Send and recv 0 bytes", "[trans4scif]") {
   REQUIRE(0 == s_pair[1]->recv(nullptr, 0));
 }
 
-// TODO: put REQUIRESs
 TEST_CASE("Random data transfers", "[trans4scif]") {
   auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
   // Receiver
@@ -204,35 +203,34 @@ TEST_CASE("Exponential increasing size", "[trans4scif]") {
   trecv.join();
 }
 
-//
-//TEST_CASE("epdSocket test", "[trans4scif]") {
-//  auto s_pair = MakeConnectedNodes<scif_epd_t>(plain_scif_listen, plain_scif_connect);
-//  uint8_t s = 'x';
-//  uint8_t r = 0;
-//
-//  auto sn0_fut = std::async(std::launch::async, [&s_pair]() -> t4s::Socket * {
-//      return t4s::epdSocket(s_pair[0]);
-//    });
-//  std::unique_ptr<t4s::Socket> s1(t4s::epdSocket(s_pair[1]));
-//  std::unique_ptr<t4s::Socket> s0(sn0_fut.get());
-//
-//  REQUIRE(1 == s0->send(&s, 1));
-//  REQUIRE(1 == s1->recv(&r, 1));
-//  REQUIRE(r == 'x');
-//}
-//
-//TEST_CASE("trans4scif->recv blocking", "[trans4scif]") {
-//  auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
-//  uint8_t r = 0;
-//
-//  SECTION("Blocking for 1 second") {
-//    std::async(std::launch::async, [&s_pair]() {
-//      uint8_t s = 'x';
-//      std::this_thread::sleep_for(std::chrono::seconds(1));
-//      REQUIRE(1 == s_pair[0]->send(&s, 1));
-//    });
-//    s_pair[1]->waitIn(3000);
-//    REQUIRE(1 == s_pair[1]->recv(&r, 1));
-//    REQUIRE(r == 'x');
-//  }
-//}
+TEST_CASE("Socket from connected epd test", "[trans4scif]") {
+  auto s_pair = MakeConnectedNodes<scif_epd_t>(plain_scif_listen, plain_scif_connect);
+  uint8_t s = 'x';
+  uint8_t r = 0;
+
+  auto sn0_fut = std::async(std::launch::async, [&s_pair]() -> t4s::Socket * {
+      return new t4s::Socket(s_pair[0]);
+    });
+  std::unique_ptr<t4s::Socket> s1(new t4s::Socket(s_pair[1]));
+  std::unique_ptr<t4s::Socket> s0(sn0_fut.get());
+
+  REQUIRE(1 == s0->send(&s, 1));
+  REQUIRE(1 == s1->recv(&r, 1));
+  REQUIRE(r == 'x');
+}
+
+TEST_CASE("trans4scif->recv blocking", "[trans4scif]") {
+  auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
+  uint8_t r = 0;
+
+  SECTION("Blocking for 1 second") {
+    std::async(std::launch::async, [&s_pair]() {
+      uint8_t s = 'x';
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      REQUIRE(1 == s_pair[0]->send(&s, 1));
+    });
+    s_pair[1]->waitIn(3000);
+    REQUIRE(1 == s_pair[1]->recv(&r, 1));
+    REQUIRE(r == 'x');
+  }
+}

@@ -56,25 +56,19 @@ class Socket::SockState {
       sn_(target_node_id, target_port),
       recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
       sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
-      recv_buf_size_(buf_size) {
-    init();
-  }
+      recv_buf_size_(buf_size) { init(); }
 
   explicit SockState(uint16_t listening_port, std::size_t buf_size) :
       sn_(listening_port),
       recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
       sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
-      recv_buf_size_(buf_size) {
-    init();
-  }
-//
-//  explicit Socket::SockState(ScifEpd &epd, std::size_t buf_size) :
-//      sn_(epd),
-//      recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
-//      sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
-//      recv_buf_size_(buf_size) {
-//    init();
-//  }
+      recv_buf_size_(buf_size) { init(); }
+
+  explicit SockState(scif_epd_t epd, std::size_t buf_size) :
+      sn_(epd),
+      recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
+      sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
+      recv_buf_size_(buf_size) { init(); }
 };
 
 void Socket::SockState::init() {
@@ -127,17 +121,10 @@ Socket::Socket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_si
 Socket::Socket(uint16_t listening_port, std::size_t buf_size) :
     state(new SockState(listening_port, buf_size)) {}
 
-//
-//Socket::Socket(ScifEpd &epd, std::size_t buf_size) :
-//    sn_(epd),
-//    recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
-//    sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
-//    recv_buf_size_(buf_size) {
-//  init();
-//}
+Socket::Socket(scif_epd_t epd, std::size_t buf_size) :
+    state(new SockState(epd, buf_size)) {}
 
 Socket::~Socket() = default;
-
 
 Blk Socket::getSendBuffer() {
   auto buf_rec = state->sendrecs_->getBufRec();

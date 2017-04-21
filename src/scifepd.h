@@ -43,8 +43,15 @@ class ScifEpd {
 
   ScifEpd &operator=(ScifEpd &&e) {
     assert(e.epd_ != SCIF_OPEN_FAILED);
-    //TODO: explicit invocation of the destructor
-    this->~ScifEpd();
+
+    //Close current epd_
+    if (epd_ != SCIF_OPEN_FAILED) {
+      if (scif_close(epd_) == -1) {
+        std::system_error e(errno, std::system_category(), __FILE__LINE__);
+        std::cerr << "Warning: scif_close: " << e.what() << std::endl;
+      }
+    }
+
     epd_ = e.epd_;
     e.epd_ = SCIF_OPEN_FAILED;
     return *this;

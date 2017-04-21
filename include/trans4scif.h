@@ -40,9 +40,9 @@ class Socket {
 
   // Construct a listening node
   explicit Socket(uint16_t listening_port, std::size_t buf_size = BUF_SIZE);
-//
-//  // Contruct from an already connected node
-//  explicit Socket(ScifEpd &epd, std::size_t buf_size);
+
+  // Contruct from an already connected node
+  explicit Socket(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
 
   // Copy is prohibited
   Socket(const Socket &s) = delete;
