@@ -10,11 +10,10 @@
 	
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
-
+#include "scifnode.h"
 #include <system_error>
 #include <stdexcept>
 #include <cassert>
-#include "scifnode.h"
 #include "trans4scif_config.h"
 
 namespace t4s {
@@ -45,7 +44,7 @@ ScifNode::ScifNode(uint16_t listening_port) {
   epd_ = ScifEpd(acc_epd_t);
 }
 
-std::size_t ScifNode::sendMsg(std::vector<uint8_t> &payload) {
+std::size_t ScifNode::sendMsg(std::vector<uint8_t> &payload) const {
   int bytes_sent = 0;
   for (auto it = payload.begin();
        std::distance(it, payload.end());
@@ -59,7 +58,7 @@ std::size_t ScifNode::sendMsg(std::vector<uint8_t> &payload) {
   return payload.size();
 }
 
-std::vector<uint8_t> ScifNode::recvMsg(std::size_t size) {
+std::vector<uint8_t> ScifNode::recvMsg(std::size_t size) const {
   std::vector<uint8_t> payload(size);
   int bytes_recv = 0;
   for (auto it = payload.begin();
@@ -74,17 +73,17 @@ std::vector<uint8_t> ScifNode::recvMsg(std::size_t size) {
   return payload;
 }
 
-void ScifNode::writeMsg(off_t dest, off_t src, std::size_t len) {
+void ScifNode::writeMsg(off_t dest, off_t src, std::size_t len) const {
   if (scif_writeto(epd_.get(), src, len, dest, 0) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 }
 
-void ScifNode::signalPeer(off_t dest, std::uint64_t val) {
+void ScifNode::signalPeer(off_t dest, std::uint64_t val) const {
   if (scif_fence_signal(epd_.get(), 0, 0, dest, val, SCIF_FENCE_INIT_SELF | SCIF_SIGNAL_REMOTE) == -1)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
 }
 
-bool ScifNode::canSendMsg(long timeout) {
+bool ScifNode::canSendMsg(long timeout) const {
   struct scif_pollepd pepd;
   pepd.epd = epd_.get();
   pepd.events = SCIF_POLLOUT;
@@ -97,7 +96,7 @@ bool ScifNode::canSendMsg(long timeout) {
   return pepd.revents == SCIF_POLLOUT;
 }
 
-bool ScifNode::canRecvMsg(long timeout) {
+bool ScifNode::canRecvMsg(long timeout) const {
   struct scif_pollepd pepd;
   pepd.epd = epd_.get();
   pepd.events = SCIF_POLLIN;

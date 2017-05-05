@@ -51,21 +51,21 @@ TEST_CASE("Serializing/deserializing", "[util]") {
   }
 }
 
-TEST_CASE("ROUND_TO_BOUNDARY macro test", "[util]") {
+TEST_CASE("round template function test test", "[util]") {
 
-  REQUIRE(0X40 == ROUND_TO_BOUNDARY(0x40, t4s::CACHELINE_SIZE));
-  REQUIRE(t4s::CACHELINE_SIZE == ROUND_TO_BOUNDARY(1, t4s::CACHELINE_SIZE));
-  REQUIRE(0X80 == ROUND_TO_BOUNDARY(0x41, t4s::CACHELINE_SIZE));
+  REQUIRE(0X40 == t4s::round<t4s::CL_SIZE>(0x40));
+  REQUIRE(t4s::CL_SIZE == t4s::round<t4s::CL_SIZE>(1));
+  REQUIRE(0X80 == t4s::round<t4s::CL_SIZE>(0x41));
   std::size_t sz = 0x453;
-  sz = ROUND_TO_BOUNDARY(sz, t4s::PAGE_SIZE);
+  sz = t4s::round<t4s::PAGE_SIZE>(sz);
   REQUIRE(0X1000 == sz);
-  sz = ROUND_TO_BOUNDARY(sz + 1, t4s::PAGE_SIZE);
+  sz = t4s::round<t4s::PAGE_SIZE>(sz + 1);
   REQUIRE(0X2000 == sz);
-  REQUIRE(0X1000 == ROUND_TO_BOUNDARY(1, t4s::PAGE_SIZE));
-  REQUIRE(0 == ROUND_TO_BOUNDARY(0, t4s::PAGE_SIZE));
+  REQUIRE(0X1000 == t4s::round<t4s::PAGE_SIZE>(1));
+  REQUIRE(0 == t4s::round<t4s::PAGE_SIZE>(0));
 
   SECTION("Round towards minus infiniti") {
-    REQUIRE(0x40 == ROUND_TO_BOUNDARY(0X40-(t4s::CACHELINE_SIZE-1), t4s::CACHELINE_SIZE));
-    REQUIRE(0x40 == ROUND_TO_BOUNDARY(0X58-(t4s::CACHELINE_SIZE-1), t4s::CACHELINE_SIZE));
+    REQUIRE(0x40 == t4s::round<t4s::CL_SIZE>(0X40-(t4s::CL_SIZE-1)));
+    REQUIRE(0x40 == t4s::round<t4s::CL_SIZE>(0X58-(t4s::CL_SIZE-1)));
   }
 }

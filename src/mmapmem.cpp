@@ -21,11 +21,12 @@
 
 namespace t4s {
 
-Mmapmem::Mmapmem(scif_epd_t epd, off_t off, std::size_t len, int prot_flags) {
-  if ((addr_ = scif_mmap(nullptr, len, prot_flags, 0, epd, off)) == SCIF_MMAP_FAILED)
+Mmapmem::Mmapmem(scif_epd_t epd, off_t off, std::size_t len, int prot_flags) :
+  addr_{scif_mmap(nullptr, len, prot_flags, 0, epd, off)},
+  len_{len},
+  off_{off} {
+  if (addr_ == SCIF_MMAP_FAILED)
     throw std::system_error(errno, std::system_category(), __FILE__LINE__);
-  len_ = len;
-  off_ = off;
 }
 
 Mmapmem::Mmapmem(Mmapmem &&m) :
@@ -33,22 +34,20 @@ Mmapmem::Mmapmem(Mmapmem &&m) :
       off_(m.off_),
       len_(m.len_) {
   m.addr_ = nullptr;
-  m.off_ = 0;
-  m.len_ = 0;
 }
 
-Mmapmem &Mmapmem::operator=(Mmapmem &&m) {
-  addr_ = m.addr_;
-  off_ = m.off_;
-  len_ = m.len_;
-  m.addr_ = nullptr;
-  m.off_ = 0;
-  m.len_ = 0;
-  return *this;
-}
+//Mmapmem &Mmapmem::operator=(Mmapmem &&m) {
+//  addr_ = m.addr_;
+//  off_ = m.off_;
+//  len_ = m.len_;
+//  m.addr_ = nullptr;
+//  m.off_ = 0;
+//  m.len_ = 0;
+//  return *this;
+//}
 
 Mmapmem::~Mmapmem() {
-  if (addr_ != nullptr) {
+  if (addr_) {
     if (scif_munmap(addr_, len_) == -1) {
       std::system_error e(errno, std::system_category(), __FILE__LINE__);
       std::cerr << "Warning: scif_munmap: " << e.what() << __FILE__LINE__ << std::endl;

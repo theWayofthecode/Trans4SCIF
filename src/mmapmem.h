@@ -11,7 +11,8 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#pragma once
+#ifndef _MMAPMEM_H_
+#define _MMAPMEM_H_
 
 #include <cstddef>
 #include <scif.h>
@@ -23,9 +24,9 @@ namespace t4s {
 
 class Mmapmem {
  private:
-  void *addr_ = nullptr;
-  std::size_t len_;
-  off_t off_;
+  void * addr_;
+  std::size_t const len_;
+  off_t const off_;
 
  public:
   explicit Mmapmem(scif_epd_t epd, off_t off, std::size_t len, int prot_flags);
@@ -35,15 +36,17 @@ class Mmapmem {
   Mmapmem &operator=(const Mmapmem &m) = delete;
 
   Mmapmem(Mmapmem &&m);
-  Mmapmem &operator=(Mmapmem &&m);
+  Mmapmem &operator=(Mmapmem &&m) = delete;
 
   ~Mmapmem();
 
-  void *get_addr() { return addr_; }
+  void *addr() const { return addr_; }
 
-  off_t get_off() { return off_; }
+  off_t off() const { return off_; }
 
-  std::size_t get_len() { return len_; }
+  std::size_t size() const { return len_; }
 };
 
 }
+
+#endif

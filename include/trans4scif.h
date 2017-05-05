@@ -15,7 +15,6 @@
 #define _TRANS4SCIF_TRANS4SCIF_H_
 
 #include <scif.h>
-#include <future>
 #include <memory>
 
 namespace t4s {
@@ -45,14 +44,14 @@ class Socket {
   explicit Socket(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
 
   // Copy is prohibited
-  Socket(const Socket &s) = delete;
-  Socket &operator=(const Socket &s) = delete;
+  Socket(Socket const &s) = delete;
+  Socket &operator=(Socket const &s) = delete;
   
   ~Socket();
 
   // Send up to data_size number of bytes from the memory region pointed by data.
   // Return the number of bytes actually sent. This method does not block.
-  std::size_t send(const uint8_t *data, std::size_t data_size);
+  std::size_t send(uint8_t *data, std::size_t data_size);
 
   // Receive (by copying) up to data_size number of bytes to the memory region pointed by data.
   // Return the number of bytes actually received. This method does not block.
@@ -64,30 +63,13 @@ class Socket {
 
   // Get the internal Send buffer details.
   // This method must invoked for each use.
-  Blk getSendBuffer();
-
-  // Get the internal buffer size.
-  // Note: recvbuf_size == sendbuf_size
-  std::size_t getBufSize();
+  Blk getSendBuffer () const ;
 
  private:
   // Pimpl
   class SockState;
-  const std::unique_ptr<SockState> state;
+  std::unique_ptr<SockState> const s;
 };
-
-//
-//// Construct a connecting node
-//Socket* connectingSocket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size = BUF_SIZE);
-//
-//// Construct a listening node
-//Socket* listeningSocket(uint16_t listening_port, std::size_t buf_size = BUF_SIZE);
-
-//// Construct a Socket from a connected epd
-//Socket* epdSocket(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
-//
-//// Construct a Socket from a connected epd, asynchronously
-//std::future<Socket *> epdSocketAsync(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
 
 }
 #endif //_TRANS4SCIF_TRANS4SCIF_H_

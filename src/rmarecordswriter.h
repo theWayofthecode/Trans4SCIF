@@ -25,27 +25,26 @@ namespace t4s {
 
 class RMARecordsWriter {
  private:
-  RMAWindow buf_win_;
-  Record *buf_head_;
-  Record *buf_tail_;
-  volatile Record *buf_idx_;
+  RMAWindow const buf_win_;
+  Record * const buf_head_;
+  Record * const buf_tail_;
+  Record volatile *buf_idx_;
 
-  Mmapmem wr_mem_;
-  Record *wr_head_;
-  Record *wr_tail_;
-  volatile Record *wr_idx_;
-
-  const std::size_t recv_buf_size_;
+  Mmapmem const wr_mem_;
+  Record * const wr_head_;
+  Record * const wr_tail_;
+  Record volatile *wr_idx_;
+  std::size_t const recv_buf_size_;
  public:
   explicit RMARecordsWriter(RMAWindow &buf_win, Mmapmem &wr_mem, std::size_t recv_buf_size);
 
   //Check if there is space in the buffer and also free wr_record slot
-  bool canWrite() {
-    return (buf_idx_->end - buf_idx_->start >= CACHELINE_SIZE) &&
+  bool canWrite() const {
+    return (buf_idx_->end - buf_idx_->start >= CL_SIZE) &&
       (wr_idx_->start == inval_rec.start && wr_idx_->end == inval_rec.end);
   }
 
-  Record getBufRec() {
+  Record getBufRec() const {
     return {buf_idx_->start, buf_idx_->end};
   }
 

@@ -60,31 +60,6 @@ scif_epd_t plain_scif_listen(int listening_port) {
   return acc_epd_t;
 }
 
-
-std::array<std::unique_ptr<t4s::Socket>, 2> MakeConnectedT4SSockets(std::size_t buf_size) {
-  std::array<std::unique_ptr<t4s::Socket>, 2> sn_pair;
-
-  // Accept
-  auto sn0_fut = std::async(std::launch::async, []() -> std::unique_ptr<t4s::Socket> {
-    return std::unique_ptr<t4s::Socket>(new t4s::Socket(PORT));
-  });
-
-  // Connect
-  uint16_t self_node_id = -1;
-  scif_get_nodeIDs(nullptr, 0, &self_node_id);
-  for (int i = 0; i < 10; ++i) {
-    try {
-      sn_pair[1] = std::unique_ptr<t4s::Socket>(new t4s::Socket(self_node_id, PORT));
-      break;
-    } catch (std::system_error e) {
-      std::cerr << "Warning: MakeConnectedT4SSockets: " << e.what() << __FILE__LINE__ << std::endl;
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  }
-  sn_pair[0] = sn0_fut.get();
-  return sn_pair;
-}
-
 //////////////////// TESTS //////////////////////////
 
 TEST_CASE("Test version", "[trans4scif]") {
@@ -126,7 +101,7 @@ TEST_CASE("Test version", "[trans4scif]") {
 //}
 
 TEST_CASE("send one byte", "[trans4scif]") {
-  auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
+  auto s_pair = MakeConnectedNodes<t4s::Socket>();
   uint8_t s = 'x';
   uint8_t r = 0;
   REQUIRE(1 == s_pair[0]->send(&s, 1));
@@ -135,13 +110,13 @@ TEST_CASE("send one byte", "[trans4scif]") {
 }
 
 TEST_CASE("Send and recv 0 bytes", "[trans4scif]") {
-  auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
+  auto s_pair = MakeConnectedNodes<t4s::Socket>();
   REQUIRE(0 == s_pair[0]->send(nullptr, 0));
   REQUIRE(0 == s_pair[1]->recv(nullptr, 0));
 }
 
 TEST_CASE("Random data transfers", "[trans4scif]") {
-  auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
+  auto s_pair = MakeConnectedNodes<t4s::Socket>();
   // Receiver
   std::thread trecv ([&s_pair]() {
     std::uniform_int_distribution<> dist(0, t4s::BUF_SIZE - t4s::CHUNK_HEAD_SIZE - 1);
@@ -175,7 +150,7 @@ TEST_CASE("Random data transfers", "[trans4scif]") {
 
 
 TEST_CASE("Exponential increasing size", "[trans4scif]") {
-  auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
+  auto s_pair = MakeConnectedNodes<t4s::Socket>();
 
   // Receiver
   std::thread trecv ([&s_pair]() {
@@ -203,24 +178,24 @@ TEST_CASE("Exponential increasing size", "[trans4scif]") {
   trecv.join();
 }
 
-TEST_CASE("Socket from connected epd test", "[trans4scif]") {
-  auto s_pair = MakeConnectedNodes<scif_epd_t>(plain_scif_listen, plain_scif_connect);
-  uint8_t s = 'x';
-  uint8_t r = 0;
-
-  auto sn0_fut = std::async(std::launch::async, [&s_pair]() -> t4s::Socket * {
-      return new t4s::Socket(s_pair[0]);
-    });
-  std::unique_ptr<t4s::Socket> s1(new t4s::Socket(s_pair[1]));
-  std::unique_ptr<t4s::Socket> s0(sn0_fut.get());
-
-  REQUIRE(1 == s0->send(&s, 1));
-  REQUIRE(1 == s1->recv(&r, 1));
-  REQUIRE(r == 'x');
-}
+//TEST_CASE("Socket from connected epd test", "[trans4scif]") {
+//auto s_pair = MakeConnectedNodes<t4s::Socket>();
+//  uint8_t s = 'x';
+//  uint8_t r = 0;
+//
+//  auto sn0_fut = std::async(std::launch::async, [&s_pair]() -> t4s::Socket * {
+//      return new t4s::Socket(s_pair[0]);
+//    });
+//  std::unique_ptr<t4s::Socket> s1(new t4s::Socket(s_pair[1]));
+//  std::unique_ptr<t4s::Socket> s0(sn0_fut.get());
+//
+//  REQUIRE(1 == s0->send(&s, 1));
+//  REQUIRE(1 == s1->recv(&r, 1));
+//  REQUIRE(r == 'x');
+//}
 
 TEST_CASE("trans4scif->recv blocking", "[trans4scif]") {
-  auto s_pair = MakeConnectedT4SSockets(t4s::BUF_SIZE);
+  auto s_pair = MakeConnectedNodes<t4s::Socket>();
   uint8_t r = 0;
 
   SECTION("Blocking for 1 second") {

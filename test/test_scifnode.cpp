@@ -20,12 +20,7 @@
 
 TEST_CASE("ScifNode send/receive", "[scifnode]")
 {
-  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
-      [](int port) {return new t4s::ScifNode(port);}, //listener
-      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
-  );
-
-
+  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
   SECTION("Empty message")
   {
     std::vector<uint8_t> vsend;
@@ -83,23 +78,12 @@ TEST_CASE("ScifNode send/receive", "[scifnode]")
     std::vector<uint8_t> vrecv = sn_pair[1]->recvMsg(sz);
     REQUIRE( sz == vrecv.size() );
   }
-/*
-  SECTION("Test send/recv timeout")
-  {
-    std::size_t sz = 0x2000; //larger than max scif_recv buffer size
-    std::vector<uint8_t> vsend(sz);
-    REQUIRE_THROWS_AS( sn_pair[0]->sendMsg(vsend), std::runtime_error );
-    REQUIRE_THROWS_AS( sn_pair[1]->recvMsg(sz), std::runtime_error );
-  } */
+
 }
 
 TEST_CASE("ScifNode writeMsg", "[scifnode]")
 {
-  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
-      [](int port) {return new t4s::ScifNode(port);}, //listener
-      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
-  );
-
+  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
 
   SECTION("Write receive test", "[scifnode]")
   {
@@ -111,13 +95,13 @@ TEST_CASE("ScifNode writeMsg", "[scifnode]")
     int payload = 0xABCCBA;
 
     t4s::inttype_to_vec_le(payload, v);
-    std::copy(v.begin(), v.end(), static_cast<uint8_t *>(win_send.get_mem()));
+    std::copy(v.begin(), v.end(), static_cast<uint8_t *>(win_send.mem()));
 
     // RDMA write
-    sn_pair[0]->writeMsg(win_recv.get_off(), win_send.get_off(), sizeof(payload));
+    sn_pair[0]->writeMsg(win_recv.off(), win_send.off(), sizeof(payload));
 
     // Read receive buffer
-    uint8_t * src = static_cast<uint8_t *>(win_recv.get_mem());
+    uint8_t * src = static_cast<uint8_t *>(win_recv.mem());
     std::copy(src, src+sizeof(payload), v.begin());
     int result = 0;
     t4s::vec_to_inttype_le(v, result);
@@ -129,10 +113,7 @@ TEST_CASE("ScifNode writeMsg", "[scifnode]")
 
 TEST_CASE("t4s::ScifNode has_recv_msg", "[scifnode]")
 {
-  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
-      [](int port) {return new t4s::ScifNode(port);}, //listener
-      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
-  );
+  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
 
   std::vector<uint8_t> msg(16);
   REQUIRE( sn_pair[0]->sendMsg(msg) == 16 );
@@ -144,10 +125,8 @@ TEST_CASE("t4s::ScifNode has_recv_msg", "[scifnode]")
 
 TEST_CASE("Send/recv blocking", "[scifnode][long]")
 {
-  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
-      [](int port) {return new t4s::ScifNode(port);}, //listener
-      [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
-  );
+  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
+
   std::vector<uint8_t> msg(10000);
   REQUIRE_THROWS( sn_pair[0]->sendMsg(msg) );
   REQUIRE_THROWS( sn_pair[0]->recvMsg(10000) );

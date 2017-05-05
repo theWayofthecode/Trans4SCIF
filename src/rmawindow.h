@@ -11,7 +11,9 @@
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
 
-#pragma once
+
+#ifndef _RMAWINDOW_H_
+#define _RMAWINDOW_H_
 
 #include <cstddef>
 #include <scif.h>
@@ -23,10 +25,10 @@ namespace t4s {
 
 class RMAWindow {
  private:
-  scif_epd_t epd_;
+  scif_epd_t const epd_;
   void *mem_;
   off_t off_;
-  std::size_t len_;
+  std::size_t const len_;
 
  public:
   //  Open a window in the registered memory space of the process.
@@ -39,17 +41,19 @@ class RMAWindow {
   RMAWindow &operator=(const RMAWindow &w) = delete;
 
   RMAWindow(RMAWindow &&w);
-  RMAWindow &operator=(RMAWindow &&w);
+  RMAWindow &operator=(RMAWindow &&w) = delete;
 
   ~RMAWindow();
 
-  void *get_mem() { return mem_; }
+  void *mem() const { return mem_; }
 
-  off_t get_off() { return off_; }
+  off_t off() const { return off_; }
 
-  std::size_t get_len() { return len_; }
+  std::size_t size() const { return len_; }
 
-  bool in_window(const void *p) { return (p >= mem_) && (p < mem_+len_); }
+  bool isInWindow(void *p) const { return (p >= mem_) && (p < mem_+len_); }
 };
 
 }
+
+#endif

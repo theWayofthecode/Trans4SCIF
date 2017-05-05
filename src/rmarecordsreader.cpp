@@ -10,9 +10,8 @@
 	
 	Author: Aram Santogidis <aram.santogidis@cern.ch>
 */
-
-#include <cassert>
 #include "rmarecordsreader.h"
+#include <cassert>
 #include "util.h"
 
 namespace t4s {
@@ -20,18 +19,16 @@ namespace t4s {
   RMARecordsReader::RMARecordsReader(Mmapmem &buf_mem, RMAWindow &wr_win, std::size_t recv_buf_size) :
     buf_mem_{std::move(buf_mem)},
     wr_win_{std::move(wr_win)},
-    buf_head_{reinterpret_cast<Record *>(buf_mem_.get_addr())},
-    wr_head_{reinterpret_cast<Record *>(wr_win_.get_mem())},
-    recv_buf_size_(recv_buf_size) {
-
-    buf_tail_ = buf_head_ + 3;
-    buf_head_->start = 0;
-    buf_head_->end = recv_buf_size_;
-    buf_idx_ = buf_head_ + 1;
-
-    wr_tail_ = wr_head_ + wr_win_.get_len() / sizeof(Record);
-    wr_idx_ = wr_head_;
-
+    buf_head_{reinterpret_cast<Record *>(buf_mem_.addr())},
+    buf_tail_{buf_head_ + 3},
+    wr_head_{reinterpret_cast<Record *>(wr_win_.mem())},
+    wr_tail_{wr_head_ + wr_win_.size() / sizeof(Record)},
+    wr_idx_{wr_head_},
+    buf_idx_{buf_head_},
+    recv_buf_size_{recv_buf_size} {
+    buf_idx_->start = 0;
+    buf_idx_->end = recv_buf_size_;
+    buf_idx_++;
   }
 
   bool RMARecordsReader::read(std::size_t rlen) {
@@ -40,7 +37,7 @@ namespace t4s {
       wr_idx_->end = inval_rec.end;
       if (++wr_idx_ == wr_tail_)
         wr_idx_ = wr_head_;
-      uint64_t new_end = ROUND_TO_BOUNDARY(buf_idx_->end+rlen, CACHELINE_SIZE);
+      uint64_t new_end = round<CL_SIZE>(buf_idx_->end+rlen);
       buf_idx_->end = new_end;
       // We use new_end to avoid a race condition since buf_idx_->end can be assigned 0 by the
       // sender before the following comparison takes place.

@@ -43,11 +43,11 @@ class Socket::SockState {
   void init();
 
  public:
-  ScifNode sn_;
-  RMAWindow recvbuf_;
-  RMAWindow sendbuf_;
+  ScifNode const sn_;
+  RMAWindow const recvbuf_;
+  RMAWindow const sendbuf_;
   RMAId peer_recvbuf_;
-  const std::size_t recv_buf_size_;
+  std::size_t const recv_buf_size_;
   std::unique_ptr<RMARecordsWriter> sendrecs_;
   std::unique_ptr<RMARecordsReader> recvrecs_;
   int pending_notifs = 0;
@@ -74,24 +74,24 @@ class Socket::SockState {
 void Socket::SockState::init() {
   auto buf_win = sn_.createRMAWindow(PAGE_SIZE, SCIF_PROT_READ | SCIF_PROT_WRITE);
   auto wr_win = sn_.createRMAWindow(WR_WIN_SIZE*PAGE_SIZE, SCIF_PROT_READ | SCIF_PROT_WRITE);
-  std::fill_n(static_cast<Record *>(wr_win.get_mem()), wr_win.get_len()/sizeof(Record), inval_rec);
+  std::fill_n(static_cast<Record *>(wr_win.mem()), wr_win.size()/sizeof(Record), inval_rec);
 
   // send the offsets to the peer
   std::vector<uint8_t> rmaids_msg;
   rmaids_msg.reserve(3*sizeof(RMAId));
 
   // Insert in message buf_id
-  RMAId buf_id{buf_win.get_off(), buf_win.get_len()};
+  RMAId buf_id{buf_win.off(), buf_win.size()};
   auto buf_msg(PackRMAIdMsg(buf_id));
   rmaids_msg.insert(rmaids_msg.end(), buf_msg.begin(), buf_msg.end());
 
   // Insert in message wr_id
-  RMAId wr_id{wr_win.get_off(), wr_win.get_len()};
+  RMAId wr_id{wr_win.off(), wr_win.size()};
   auto wr_msg(PackRMAIdMsg(wr_id));
   rmaids_msg.insert(rmaids_msg.end(), wr_msg.begin(), wr_msg.end());
 
   // Insert in message recvbuf_id
-  RMAId recvbuf_id{recvbuf_.get_off(), recvbuf_.get_len()};
+  RMAId recvbuf_id{recvbuf_.off(), recvbuf_.size()};
   auto recvbuf_msg(PackRMAIdMsg(recvbuf_id));
   rmaids_msg.insert(rmaids_msg.end(), recvbuf_msg.begin(), recvbuf_msg.end());
   // Send the message to the peer
@@ -103,7 +103,7 @@ void Socket::SockState::init() {
   auto peer_wr_id(UnpackRMAIdMsg(rmaids_msg));
   peer_recvbuf_ = UnpackRMAIdMsg(rmaids_msg);
   assert(rmaids_msg.empty());
-  assert(peer_recvbuf_.size == sendbuf_.get_len());
+  assert(peer_recvbuf_.size == sendbuf_.size());
 
   // Create the RMARecords
   auto peer_buf_mmap(sn_.createMmapmem(peer_buf_id.off,
@@ -116,50 +116,51 @@ void Socket::SockState::init() {
 }
 
 Socket::Socket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size) :
-    state(new SockState(target_node_id, target_port, buf_size)) {}
+    s(new SockState(target_node_id, target_port, buf_size)) {}
 
 Socket::Socket(uint16_t listening_port, std::size_t buf_size) :
-    state(new SockState(listening_port, buf_size)) {}
+    s(new SockState(listening_port, buf_size)) {}
 
 Socket::Socket(scif_epd_t epd, std::size_t buf_size) :
-    state(new SockState(epd, buf_size)) {}
+    s(new SockState(epd, buf_size)) {}
 
 Socket::~Socket() = default;
 
-Blk Socket::getSendBuffer() {
-  auto buf_rec = state->sendrecs_->getBufRec();
+//TODO: const this method (and check in other modules as well)
+Blk Socket::getSendBuffer() const {
+  auto buf_rec = s->sendrecs_->getBufRec();
   //round towards minus infinity
-  std::size_t space = ROUND_TO_BOUNDARY((buf_rec.end-buf_rec.start)-(CACHELINE_SIZE-1),
-                                        CACHELINE_SIZE);
-  space = std::min(space, state->recv_buf_size_/2);
-  return Blk{state->sendbuf_.get_mem()+buf_rec.start, space};
+  std::size_t space = round<CL_SIZE>((buf_rec.end-buf_rec.start)-(CL_SIZE-1));
+  space = std::min(space, s->recv_buf_size_/2);
+  return Blk{s->sendbuf_.mem()+buf_rec.start, space};
 }
 
-std::size_t Socket::send(const uint8_t *data, std::size_t data_size) {
+std::size_t Socket::send(uint8_t *data, std::size_t data_size) {
   std::size_t total_bytes = 0;
   for (int i = 0; i < 2; ++i) {
-    if (!data_size || !state->sendrecs_->canWrite())
+    if (!data_size || !s->sendrecs_->canWrite())
       return total_bytes;
-    auto buf_rec = state->sendrecs_->getBufRec();
+    auto buf_rec = s->sendrecs_->getBufRec();
     //round towards minus infinity
-    std::size_t space = ROUND_TO_BOUNDARY((buf_rec.end - buf_rec.start) - (CACHELINE_SIZE - 1),
-                                          CACHELINE_SIZE);
-    std::size_t to_write = std::min(std::min(space, data_size), state->recv_buf_size_ / 2);
+    std::size_t space = round<CL_SIZE>((buf_rec.end-buf_rec.start)-(CL_SIZE-1));
+    std::size_t to_write = std::min(std::min(space, data_size), s->recv_buf_size_ / 2);
     assert(to_write > 0);
 
-    if (!state->sendbuf_.in_window(static_cast<const uint8_t *>(data))) {
-      void *__restrict dest = static_cast<void *__restrict>(state->sendbuf_.get_mem()) + buf_rec.start;
+    if (!s->sendbuf_.isInWindow(data)) {
+      //TODO: static cast src as well. Double check if this make sense at all
+      auto dest = static_cast<void *__restrict>(s->sendbuf_.mem() + buf_rec.start);
       memcpy(dest, data, to_write);
     } else {
       assert(to_write == data_size);
     }
-    state->sn_.writeMsg(state->peer_recvbuf_.off + buf_rec.start, state->sendbuf_.get_off() + buf_rec.start,
-                 ROUND_TO_BOUNDARY(to_write, CACHELINE_SIZE));
-    if (1 != state->sn_.send(notif.data(), 1))
-      state->sn_.sendMsg(notif);
+    s->sn_.writeMsg(s->peer_recvbuf_.off + buf_rec.start,
+                        s->sendbuf_.off() + buf_rec.start,
+                        round<CL_SIZE>(to_write));
+    if (1 != s->sn_.send(notif.data(), 1))
+      s->sn_.sendMsg(notif);
     uint64_t sigval = to_write + buf_rec.start;
-    off_t sigoff = state->sendrecs_->written(to_write);
-    state->sn_.signalPeer(sigoff, sigval);
+    off_t sigoff = s->sendrecs_->written(to_write);
+    s->sn_.signalPeer(sigoff, sigval);
 
     data += to_write;
     data_size -= to_write;
@@ -172,23 +173,23 @@ std::size_t Socket::recv(uint8_t *data, std::size_t data_size) {
   std::size_t total_bytes = 0;
   for (int i = 0; i < 2; ++i) {
     // Receive as many pending notification tokens as possible
-    if (state->pending_notifs > 0) {
-      uint8_t tmp[state->pending_notifs];
-      state->pending_notifs -= state->sn_.recv(tmp, state->pending_notifs);
+    if (s->pending_notifs > 0) {
+      uint8_t tmp[s->pending_notifs];
+      s->pending_notifs -= s->sn_.recv(tmp, s->pending_notifs);
     }
 
-    if (!data_size || !state->recvrecs_->canRead())
+    if (!data_size || !s->recvrecs_->canRead())
       return total_bytes;
 
-    auto wr_rec = state->recvrecs_->getWrRec();
+    auto wr_rec = s->recvrecs_->getWrRec();
     assert(wr_rec.end > wr_rec.start);
     std::size_t to_read = std::min(wr_rec.end - wr_rec.start, data_size);
     void *__restrict dest = data;
-    void *__restrict src = static_cast<void *__restrict>(state->recvbuf_.get_mem()) + wr_rec.start;
+    auto src = static_cast<void *__restrict>(s->recvbuf_.mem()) + wr_rec.start;
     memcpy(data, src, to_read);
 
-    if (state->recvrecs_->read(to_read))
-      state->pending_notifs++;
+    if (s->recvrecs_->read(to_read))
+      s->pending_notifs++;
 
     data += to_read;
     data_size -= to_read;
@@ -198,25 +199,11 @@ std::size_t Socket::recv(uint8_t *data, std::size_t data_size) {
 }
 
 void Socket::waitIn (long timeout) {
-  if (state->pending_notifs > 0) {
-    state->sn_.recvMsg(state->pending_notifs);
-    state->pending_notifs = 0;
+  if (s->pending_notifs > 0) {
+    s->sn_.recvMsg(s->pending_notifs);
+    s->pending_notifs = 0;
   }
-  while (!state->sn_.canRecvMsg(timeout));
+  while (!s->sn_.canRecvMsg(timeout));
 }
-
-//Socket* epdSocket(scif_epd_t epd, std::size_t buf_size) {
-//  assert(epd != SCIF_OPEN_FAILED);
-//  ScifEpd e(epd);
-//  return new Socket(e, buf_size);
-//}
-//
-//std::future<Socket *> epdSocketAsync(scif_epd_t epd, std::size_t buf_size) {
-//  assert(epd != SCIF_OPEN_FAILED);
-//  return std::async(std::launch::async, [epd, buf_size]() -> Socket * {
-//    ScifEpd e(epd);
-//    return new Socket(e, buf_size);
-//  });
-//}
 
 }

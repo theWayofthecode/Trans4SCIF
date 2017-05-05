@@ -29,15 +29,15 @@ class ScifEpd {
  private:
   scif_epd_t epd_;
  public:
-  ScifEpd() {
-    if ((epd_ = scif_open()) == SCIF_OPEN_FAILED)
+  ScifEpd() : epd_{scif_open()} {
+    if (epd_== SCIF_OPEN_FAILED)
       throw std::system_error(errno, std::system_category(), __FILE__LINE__);
   }
 
-  explicit ScifEpd(scif_epd_t e) : epd_(e) {}
+  explicit ScifEpd(scif_epd_t e) : epd_{e} {}
 
 // Move constructor and assignment
-  ScifEpd(ScifEpd &&e) : epd_(e.epd_) {
+  ScifEpd(ScifEpd &&e) : epd_{e.epd_} {
     e.epd_ = SCIF_OPEN_FAILED;
   }
 
@@ -71,9 +71,7 @@ class ScifEpd {
     }
   }
 
-  scif_epd_t get() const {
-    return epd_;
-  }
+  scif_epd_t get() const { return epd_; }
 
 };
 }

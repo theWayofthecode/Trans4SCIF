@@ -22,15 +22,13 @@ namespace t4s {
   RMARecordsWriter::RMARecordsWriter(RMAWindow &buf_win, Mmapmem &wr_mem, std::size_t recv_buf_size) :
     buf_win_{std::move(buf_win)},
     wr_mem_{std::move(wr_mem)},
-    buf_head_{reinterpret_cast<Record *>(buf_win_.get_mem())},
-    wr_head_{reinterpret_cast<Record *>(wr_mem_.get_addr())},
-    recv_buf_size_(recv_buf_size) {
-
-    buf_tail_ = buf_head_ + 3;
-    buf_idx_ = buf_head_;
-    wr_tail_ = wr_head_ + wr_mem_.get_len() / sizeof(Record);
-    wr_idx_ = wr_head_;
-  }
+    buf_head_{reinterpret_cast<Record *>(buf_win_.mem())},
+    buf_tail_{buf_head_+3},
+    buf_idx_{buf_head_},
+    wr_head_{reinterpret_cast<Record *>(wr_mem_.addr())},
+    wr_tail_{wr_head_ + wr_mem_.size() / sizeof(Record)},
+    wr_idx_{wr_head_},
+    recv_buf_size_{recv_buf_size} {}
 
   off_t RMARecordsWriter::written(std::size_t wlen) {
     assert(wr_idx_->start == inval_rec.start && wr_idx_->end == inval_rec.end);
@@ -40,13 +38,13 @@ namespace t4s {
     //The sig_off will be used by scif_fence_signal
     std::ptrdiff_t dist_in_bytes = reinterpret_cast<volatile uint8_t *>(&wr_idx_->end) -
       reinterpret_cast<volatile uint8_t *>(wr_head_);
-    off_t sig_off = wr_mem_.get_off() + dist_in_bytes;
+    off_t sig_off = wr_mem_.off() + dist_in_bytes;
 
     if (++wr_idx_ == wr_tail_)
       wr_idx_ = wr_head_;
 
     //update buf record
-    buf_idx_->start += ROUND_TO_BOUNDARY(wlen, CACHELINE_SIZE);
+    buf_idx_->start += round<CL_SIZE>(wlen);
     if (buf_idx_->start == recv_buf_size_) {
       buf_idx_->start = 0;
       buf_idx_->end = 0;

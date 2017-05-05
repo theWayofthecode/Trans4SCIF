@@ -24,22 +24,19 @@
 
 TEST_CASE("RMARecords read write scenarios", "[rmarecords]")
 {
-  auto sn_pair = MakeConnectedNodes<std::unique_ptr<t4s::ScifNode>>(
-    [](int port) {return new t4s::ScifNode(port);}, //listener
-    [](int node, int port) {return new t4s::ScifNode(node, port);} //connecter
-  );
+  auto sn_pair = MakeConnectedNodes<t4s::ScifNode>();
 
   t4s::RMAWindow win_send(sn_pair[0]->createRMAWindow(0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE));
   t4s::RMAWindow win_recv(sn_pair[1]->createRMAWindow(0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE));
   t4s::Record inval;
   inval.start = inval.end = -1;
-  std::fill_n(static_cast<t4s::Record *>(win_recv.get_mem()), win_recv.get_len()/sizeof(t4s::Record), inval);
-  auto mmap_wr = sn_pair[0]->createMmapmem(win_recv.get_off(), 0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE);
-  auto mmap_buf = sn_pair[1]->createMmapmem(win_send.get_off(), 0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE);
-  REQUIRE(win_send.get_off() == mmap_buf.get_off());
-  REQUIRE(win_recv.get_off() == mmap_wr.get_off());
-  off_t win_recv_off = win_recv.get_off();
-  off_t win_send_off = win_send.get_off();
+  std::fill_n(static_cast<t4s::Record *>(win_recv.mem()), win_recv.size()/sizeof(t4s::Record), inval);
+  auto mmap_wr = sn_pair[0]->createMmapmem(win_recv.off(), 0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE);
+  auto mmap_buf = sn_pair[1]->createMmapmem(win_send.off(), 0x1000, SCIF_PROT_READ | SCIF_PROT_WRITE);
+  REQUIRE(win_send.off() == mmap_buf.off());
+  REQUIRE(win_recv.off() == mmap_wr.off());
+  off_t win_recv_off = win_recv.off();
+  off_t win_send_off = win_send.off();
   t4s::RMARecordsWriter sender(win_send, mmap_wr, t4s::BUF_SIZE);
   t4s::RMARecordsReader recv(mmap_buf, win_recv, t4s::BUF_SIZE);
 

@@ -23,10 +23,14 @@
 #define INT_TO_STR(i) INT_TO_STR_(i)
 #define __FILE__LINE__ (__FILE__ + std::string(":") + INT_TO_STR(__LINE__))
 
-// args must be unsigned integers !!!
-#define ROUND_TO_BOUNDARY(s, b) ((s+b-1) & (-b))
-
 namespace t4s {
+
+//inline std::size_t round(std::size_t s) {return ((s+b-1)/b)*b;}
+template<std::size_t b>
+inline std::size_t round(std::size_t s) {
+  static_assert(!(b & (b-1)), "b must be power of 2");
+  return (s+b-1) & (-b);
+}
 
 template<typename inttype>
 void inttype_to_vec_le(inttype in, std::vector<uint8_t> &out) {
