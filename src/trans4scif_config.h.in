@@ -27,8 +27,11 @@ constexpr int TRANS4SCIF_VERSION_MINOR = @TRANS4SCIF_VERSION_MINOR@;
 constexpr std::size_t PAGE_SIZE = 0x1000;
 constexpr std::size_t WR_WIN_SIZE = 1;
 constexpr std::size_t CL_SIZE = 0x40;
+//TODO: To remove the following
 constexpr std::size_t CHUNK_HEAD_SIZE = sizeof(uint64_t);
-constexpr int SCIF_SEND_RECV_TIMOUT = 5000; // in ms
+constexpr std::size_t MEMCPY_CHUNKS = 32;
+constexpr std::size_t MEMCPY_SINGLE_CHUNK_THRESH = 64*PAGE_SIZE;
+constexpr int SCIF_SEND_RECV_TIMOUT = 15000; // in ms
 }
 
 #endif

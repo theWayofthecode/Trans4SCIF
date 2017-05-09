@@ -18,57 +18,43 @@
 
 #include <scif.h>
 #include <system_error>
-#include <iostream>
-#include <cassert>
-#include "trans4scif_config.h"
-#include "util.h"
 
 namespace t4s {
 
 class ScifEpd {
  private:
   scif_epd_t epd_;
- public:
-  ScifEpd() : epd_{scif_open()} {
+  void throwIfFailed() {
     if (epd_== SCIF_OPEN_FAILED)
-      throw std::system_error(errno, std::system_category(), __FILE__LINE__);
+      throw std::system_error(errno, std::system_category(), "On ScifEpd initialization.");
   }
 
-  explicit ScifEpd(scif_epd_t e) : epd_{e} {}
+ public:
+  ScifEpd() : epd_{scif_open()} { throwIfFailed(); }
 
-// Move constructor and assignment
+  explicit ScifEpd(scif_epd_t e) : epd_{e} { throwIfFailed(); }
+
+  // Move constructor and assignment
   ScifEpd(ScifEpd &&e) : epd_{e.epd_} {
+    throwIfFailed();
     e.epd_ = SCIF_OPEN_FAILED;
   }
 
   ScifEpd &operator=(ScifEpd &&e) {
-    assert(e.epd_ != SCIF_OPEN_FAILED);
-
-    //Close current epd_
-    if (epd_ != SCIF_OPEN_FAILED) {
-      if (scif_close(epd_) == -1) {
-        std::system_error e(errno, std::system_category(), __FILE__LINE__);
-        std::cerr << "Warning: scif_close: " << e.what() << std::endl;
-      }
-    }
-
+    scif_close(epd_);
     epd_ = e.epd_;
+    throwIfFailed();
     e.epd_ = SCIF_OPEN_FAILED;
     return *this;
   }
 
-// Copy is prohibited
+  // Copy is prohibited
   ScifEpd(const ScifEpd &e) = delete;
   ScifEpd &operator=(const ScifEpd &e) = delete;
 
 
   ~ScifEpd() {
-    if (epd_ != SCIF_OPEN_FAILED) {
-      if (scif_close(epd_) == -1) {
-        std::system_error e(errno, std::system_category(), __FILE__LINE__);
-        std::cerr << "Warning: scif_close: " << e.what() << std::endl;
-      }
-    }
+    scif_close(epd_);
   }
 
   scif_epd_t get() const { return epd_; }

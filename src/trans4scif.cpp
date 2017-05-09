@@ -20,6 +20,9 @@
 #include <cstring>
 #include <array>
 #include <sys/types.h>
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
+#include <tbb/task_scheduler_init.h>
 #include "scifnode.h"
 #include "ctl_messages.h"
 #include "rmarecordsreader.h"
@@ -50,7 +53,9 @@ class Socket::SockState {
   std::size_t const recv_buf_size_;
   std::unique_ptr<RMARecordsWriter> sendrecs_;
   std::unique_ptr<RMARecordsReader> recvrecs_;
-  int pending_notifs = 0;
+  int pending_notifs_ = 0;
+  tbb::task_scheduler_init tbbts_;
+
 
   explicit SockState(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size) :
       sn_(target_node_id, target_port),
@@ -64,7 +69,7 @@ class Socket::SockState {
       sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
       recv_buf_size_(buf_size) { init(); }
 
-  explicit SockState(scif_epd_t epd, std::size_t buf_size) :
+  explicit SockState(ScifEpd& epd, std::size_t buf_size) :
       sn_(epd),
       recvbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_WRITE)),
       sendbuf_(sn_.createRMAWindow(buf_size, SCIF_PROT_READ)),
@@ -121,7 +126,7 @@ Socket::Socket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_si
 Socket::Socket(uint16_t listening_port, std::size_t buf_size) :
     s(new SockState(listening_port, buf_size)) {}
 
-Socket::Socket(scif_epd_t epd, std::size_t buf_size) :
+Socket::Socket(ScifEpd& epd, std::size_t buf_size) :
     s(new SockState(epd, buf_size)) {}
 
 Socket::~Socket() = default;
@@ -148,8 +153,15 @@ std::size_t Socket::send(uint8_t *data, std::size_t data_size) {
 
     if (!s->sendbuf_.isInWindow(data)) {
       //TODO: static cast src as well. Double check if this make sense at all
-      auto dest = static_cast<void *__restrict>(s->sendbuf_.mem() + buf_rec.start);
-      memcpy(dest, data, to_write);
+      auto dest = static_cast<uint8_t *__restrict>(s->sendbuf_.mem() + buf_rec.start);
+      auto src = static_cast<uint8_t *__restrict>(data);
+      if (to_write < MEMCPY_SINGLE_CHUNK_THRESH)
+        memcpy(dest, src, to_write);
+      else
+        tbb::parallel_for(tbb::blocked_range<size_t>(0,to_write, to_write/MEMCPY_CHUNKS),
+                          [dest, src](const tbb::blocked_range<size_t>& r) {
+          std::memcpy(dest + r.begin(), src + r.begin(), r.end()-r.begin());
+        });
     } else {
       assert(to_write == data_size);
     }
@@ -173,9 +185,9 @@ std::size_t Socket::recv(uint8_t *data, std::size_t data_size) {
   std::size_t total_bytes = 0;
   for (int i = 0; i < 2; ++i) {
     // Receive as many pending notification tokens as possible
-    if (s->pending_notifs > 0) {
-      uint8_t tmp[s->pending_notifs];
-      s->pending_notifs -= s->sn_.recv(tmp, s->pending_notifs);
+    if (s->pending_notifs_ > 0) {
+      uint8_t tmp[s->pending_notifs_];
+      s->pending_notifs_ -= s->sn_.recv(tmp, s->pending_notifs_);
     }
 
     if (!data_size || !s->recvrecs_->canRead())
@@ -184,12 +196,17 @@ std::size_t Socket::recv(uint8_t *data, std::size_t data_size) {
     auto wr_rec = s->recvrecs_->getWrRec();
     assert(wr_rec.end > wr_rec.start);
     std::size_t to_read = std::min(wr_rec.end - wr_rec.start, data_size);
-    void *__restrict dest = data;
-    auto src = static_cast<void *__restrict>(s->recvbuf_.mem()) + wr_rec.start;
-    memcpy(data, src, to_read);
-
+    uint8_t *__restrict dest = data;
+    auto src = static_cast<uint8_t *__restrict>(s->recvbuf_.mem()) + wr_rec.start;
+    if (to_read < MEMCPY_SINGLE_CHUNK_THRESH)
+      memcpy(dest, src, to_read);
+    else
+      tbb::parallel_for(tbb::blocked_range<size_t>(0,to_read, to_read/MEMCPY_CHUNKS),
+                        [dest, src](const tbb::blocked_range<size_t>& r) {
+                          std::memcpy(dest + r.begin(), src + r.begin(), r.end()-r.begin());
+                        });
     if (s->recvrecs_->read(to_read))
-      s->pending_notifs++;
+      s->pending_notifs_++;
 
     data += to_read;
     data_size -= to_read;
@@ -199,9 +216,9 @@ std::size_t Socket::recv(uint8_t *data, std::size_t data_size) {
 }
 
 void Socket::waitIn (long timeout) {
-  if (s->pending_notifs > 0) {
-    s->sn_.recvMsg(s->pending_notifs);
-    s->pending_notifs = 0;
+  if (s->pending_notifs_ > 0) {
+    s->sn_.recvMsg(s->pending_notifs_);
+    s->pending_notifs_ = 0;
   }
   while (!s->sn_.canRecvMsg(timeout));
 }

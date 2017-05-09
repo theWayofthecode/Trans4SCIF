@@ -19,7 +19,7 @@
 #include <vector>
 #include <memory>
 #include <sys/types.h>
-#include "scifepd.h"
+#include "../include/scifepd.h"
 #include "rmawindow.h"
 #include "mmapmem.h"
 
@@ -37,7 +37,7 @@ class ScifNode {
   explicit ScifNode(uint16_t listening_port);
 
   // Construct ScifNode from connected scif epd
-  explicit ScifNode(scif_epd_t epd) : epd_{epd} {};
+  explicit ScifNode(ScifEpd& epd) : epd_{std::move(epd)} {};
 
   // Move constructor and assignment
   ScifNode(ScifNode &&sn) : epd_(std::move(sn.epd_)) {};

@@ -17,6 +17,7 @@ Author: Aram Santogidis <aram.santogidis@cern.ch>
 #include <chrono>
 #include <stdexcept>
 #include <system_error>
+#include <iostream>
 #include "scifnode.h"
 
 constexpr uint16_t PORT{6798};

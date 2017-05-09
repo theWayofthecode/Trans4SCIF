@@ -21,4 +21,4 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 # Installation
-install(FILES include/trans4scif.h DESTINATION include)
+install(FILES include/trans4scif.h include/scifepd.h DESTINATION include)

@@ -16,13 +16,14 @@
 
 #include <scif.h>
 #include <memory>
+#include "scifepd.h"
 
 namespace t4s {
 
 // Default internal buffer size
 constexpr std::size_t BUF_SIZE = 0x1000000;
 
-// Return the version of the library
+// Return the configuration (version etc.) of the library
 std::string trans4scif_config();
 
 // TODO: use memory block representation for send and receive
@@ -36,17 +37,13 @@ class Socket {
  public:
   // Construct a connecting node
   explicit Socket(uint16_t target_node_id, uint16_t target_port, std::size_t buf_size = BUF_SIZE);
-
   // Construct a listening node
   explicit Socket(uint16_t listening_port, std::size_t buf_size = BUF_SIZE);
-
-  // Contruct from an already connected node
-  explicit Socket(scif_epd_t epd, std::size_t buf_size = BUF_SIZE);
-
+  // Contruct from an already connected node. epd will be moved.
+  explicit Socket(ScifEpd& epd, std::size_t buf_size = BUF_SIZE);
   // Copy is prohibited
   Socket(Socket const &s) = delete;
   Socket &operator=(Socket const &s) = delete;
-  
   ~Socket();
 
   // Send up to data_size number of bytes from the memory region pointed by data.

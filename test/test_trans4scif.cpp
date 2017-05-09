@@ -22,7 +22,7 @@
 #include "catch.hpp"
 #include "trans4scif.h"
 #include "test_common.h"
-#include "scifepd.h"
+#include "../include/scifepd.h"
 #include "../src/trans4scif_config.h"
 
 

@@ -16,7 +16,7 @@ set_target_properties(trans4scif PROPERTIES VERSION ${TRANS4SCIF_VERSION}
 
 
 
-target_link_libraries(trans4scif pthread)
+target_link_libraries(trans4scif pthread tbb)
 # Installation
 
 install(TARGETS trans4scif LIBRARY DESTINATION ${INSTALL_PATH})
